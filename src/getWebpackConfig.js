@@ -14,14 +14,23 @@ const buildMode = {
 };
 
 /**
+ * @typedef {GetWebpackOptions} DevOptions
+ * @property {string|undefined} vcm - the vcm directory
+ * @property {number} port - the port number of the dev server // XXX take these options apart
+ */
+
+/**
+ * @typedef {GetWebpackOptions} ProdOptions
+ * @property {string} pluginName - the name of the plugin being built
+ * @property {boolean|undefined} modern - build for modern browsers
+ * @property {string|undefined} library - a library name to give to your plugin
+ */
+
+/**
  * @typedef {Object} GetWebpackOptions
  * @property {string|Object|undefined} entry - an alternative entry point, defaults to 'src/index'
  * @property {string|undefined} mode - 'development', 'production' or 'test'.
- * @property {boolean|undefined} modern - build for modern browsers
- * @property {string|undefined} library - a library name to give to your plugin
  * @property {boolean|undefined} condenseWhitespace - pass whitespace: 'condense' to vue loader
- * @property {string|undefined} vcm - the vcm directory
- * @property {number} port - the port number of the dev server // XXX take these options apart
  */
 
 /**
@@ -60,6 +69,11 @@ function getBaseConfig(options) {
           test: /\.js$/,
           loader: 'babel-loader',
           include: [resolveContext('src')],
+          options: {
+            presets: [
+              '@vue/babel-preset-app',
+            ],
+          },
         },
         {
           test: /\.(png|jpe?g|gif)(\?.*)?$/,
@@ -170,12 +184,14 @@ function getBaseConfig(options) {
 }
 
 /**
- * @param {GetWebpackOptions} options
+ * @param {ProdOptions} options
  * @return {webpack.Configuration}
  */
 function getProdWebpackConfig(options) {
   options.entry = options.entry || { plugin: './src/index' };
   options.mode = options.mode || buildMode.PRODUCTION;
+  process.env.VUE_CLI_MODERN_BUILD = options.modern;
+
   if (typeof options.entry === 'string') {
     options.entry = { plugin: options.entry };
   }
@@ -183,7 +199,7 @@ function getProdWebpackConfig(options) {
   const config = getBaseConfig(options);
   config.output = {
     path: resolveContext('dist'),
-    filename: options.modern ? 'plugin._es6.js' : 'plugin.js',
+    filename: options.modern ? `${options.pluginName}.es6.js` : `${options.pluginName}.js`,
     library: options.library,
     libraryTarget: options.library ? 'umd' : undefined,
     publicPath: './',
@@ -193,13 +209,17 @@ function getProdWebpackConfig(options) {
   config.devtool = false;
   config.optimization = {
     minimize: true,
-    minimizer: [new TerserPlugin()],
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false,
+      }),
+    ],
   };
   return config;
 }
 
 /**
- * @param {GetWebpackOptions} options
+ * @param {DevOptions} options
  * @return {webpack.Configuration}
  */
 function getDevWebpackConfig(options) {

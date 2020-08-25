@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 const program = require('commander');
 const { version } = require('./package.json');
-const { serve } = require('./index');
+const { serve, build } = require('./index');
 
 program.version(version);
+
+program
+  .command('build')
+  .option('-n, --plugin-name [name]', 'a name override to use. extracts the name from the package.json by default')
+  .option('--no-condense-whitespace', 'do not condense white space')
+  .action(build);
 
 program
   .command('serve')

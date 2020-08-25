@@ -13,8 +13,8 @@ function getContext() {
   return context || process.cwd();
 }
 
-function resolveContext(dir) {
-  return path.join(getContext(), dir);
+function resolveContext(...dir) {
+  return path.join(getContext(), ...dir);
 }
 
 

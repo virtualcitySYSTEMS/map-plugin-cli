@@ -13,7 +13,7 @@ function getIndexHtml(url, fileName) {
       write.on('finish', resolve);
       write.on('error', (err) => {
         reject(err);
-      })
+      });
       res.pipe(write);
     });
   });
