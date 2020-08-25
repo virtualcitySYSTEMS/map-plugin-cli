@@ -13,6 +13,7 @@ program
 
 program
   .command('serve')
+  .option('-n, --plugin-name [name]', 'a name override to use. extracts the name from the package.json by default')
   .option('-p, --port [port]', 'the port to listen on', /\d+/, '8080')
   .option('--vcm [dir]', 'the directory path or URL to a virtualcityMAP application', './vcm')
   .action(serve);
