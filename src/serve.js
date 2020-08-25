@@ -5,6 +5,7 @@ const WebpackDevServer = require('webpack-dev-server');
 const webpack = require('webpack');
 const { getContext, resolveContext } = require('./context');
 const { getDevWebpackConfig } = require('./getWebpackConfig');
+const getPluginName = require('./getPluginName');
 
 function getIndexHtml(url, fileName) {
   return new Promise((resolve, reject) => {
@@ -21,7 +22,17 @@ function getIndexHtml(url, fileName) {
 
 let configJson = null;
 
-function getConfigJson(vcm) {
+async function readConfigJson() {
+  const configFileName = resolveContext('config.json');
+  let config = {};
+  if (fs.existsSync(configFileName)) {
+    const content = await fs.promises.readFile(configFileName);
+    config = JSON.parse(content.toString());
+  }
+  return config;
+}
+
+function getConfigJson(vcm, name) {
   if (configJson) {
     return Promise.resolve(configJson);
   }
@@ -33,14 +44,15 @@ function getConfigJson(vcm) {
         data += chunk.toString();
       });
 
-      stream.on('close', () => {
+      stream.on('close', async () => {
         try {
           configJson = JSON.parse(data);
           configJson.ui = configJson.ui || {};
           configJson.ui.plugins = configJson.ui.plugins || {};
-          configJson.ui.plugins.plugin = {
-            _entry: '_dist/plugin.js', // XXX extend with local config
-          };
+          const pluginConfig = await readConfigJson();
+          // eslint-disable-next-line no-underscore-dangle
+          pluginConfig._entry = '_dist/plugin.js';
+          configJson.ui.plugins[name] = pluginConfig;
           resolve(configJson);
         } catch (e) {
           reject(e);
@@ -61,13 +73,14 @@ function getConfigJson(vcm) {
 
 async function serve(options) {
   const { vcm } = options;
+  const pluginName = options.pluginName || await getPluginName();
   const isWebVcm = /^https?:\/\//.test(vcm);
 
   const proxy = {};
   const index = 'index.html'; // XXX maybe use some random filename when web to not clobber anything
   if (isWebVcm) {
     await getIndexHtml(vcm, index);
-    ['/lib', '/css', '/fonts', '/images', '/img', '/templates', '/datasource-data'].forEach((p) => {
+    ['/lib', '/css', '/fonts', '/images', '/img', '/templates', '/datasource-data', '/plugins'].forEach((p) => {
       proxy[p] = {
         target: vcm,
         changeOrigin: true,
@@ -92,7 +105,7 @@ async function serve(options) {
     },
     before(app) {
       app.use('/config.json', (req, res) => {
-        getConfigJson(vcm)
+        getConfigJson(vcm, pluginName)
           .then((config) => {
             const stringConfig = JSON.stringify(config);
             res.setHeader('Content-Type', 'application/json');
