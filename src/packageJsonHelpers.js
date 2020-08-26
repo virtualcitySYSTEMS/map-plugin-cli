@@ -38,7 +38,7 @@ async function getPluginName() {
  */
 async function getPluginEntry() {
   const { main } = await getPackageJson();
-  if (!path.isAbsolute(main) && !/^\./.test(main)) { // webpack requires a dot for relative paths
+  if (main && !path.isAbsolute(main) && !/^\./.test(main)) { // webpack requires a dot for relative paths
     return `.${path.sep}${main}`;
   }
   return main;
