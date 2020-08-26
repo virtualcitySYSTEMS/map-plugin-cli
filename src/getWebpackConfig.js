@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const { getPluginEntry } = require('./packageJsonHelpers');
 const { resolveContext, getContext } = require('./context');
 
 /**
@@ -185,10 +186,10 @@ function getBaseConfig(options) {
 
 /**
  * @param {ProdOptions} options
- * @return {webpack.Configuration}
+ * @return {Promise<webpack.Configuration>}
  */
-function getProdWebpackConfig(options) {
-  options.entry = options.entry || { plugin: './src/index' };
+async function getProdWebpackConfig(options) {
+  options.entry = options.entry || { plugin: await getPluginEntry() || './src/index' };
   options.mode = options.mode || buildMode.PRODUCTION;
   process.env.VUE_CLI_MODERN_BUILD = options.modern;
 
@@ -220,14 +221,14 @@ function getProdWebpackConfig(options) {
 
 /**
  * @param {DevOptions} options
- * @return {webpack.Configuration}
+ * @return {Promise<webpack.Configuration>}
  */
-function getDevWebpackConfig(options) {
+async function getDevWebpackConfig(options) {
   options.entry = options.entry || {
     plugin: [
       `webpack-dev-server/client?http://192.168.1.236:8080:${options.port}`,
       'webpack/hot/only-dev-server',
-      './src/index.js',
+      await getPluginEntry() || './src/index.js',
     ],
   };
   options.mode = options.mode || buildMode.DEVELOPMENT;

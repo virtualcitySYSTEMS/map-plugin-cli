@@ -5,7 +5,7 @@ const WebpackDevServer = require('webpack-dev-server');
 const webpack = require('webpack');
 const { getContext, resolveContext } = require('./context');
 const { getDevWebpackConfig } = require('./getWebpackConfig');
-const getPluginName = require('./getPluginName');
+const { getPluginName } = require('./packageJsonHelpers');
 
 function getIndexHtml(url, fileName) {
   return new Promise((resolve, reject) => {
@@ -87,8 +87,8 @@ async function serve(options) {
       };
     });
   }
-
-  const server = new WebpackDevServer(webpack(getDevWebpackConfig(options)), {
+  const webpackConfig = await getDevWebpackConfig(options);
+  const server = new WebpackDevServer(webpack(webpackConfig), {
     hot: true,
     hotOnly: true,
     open: false,

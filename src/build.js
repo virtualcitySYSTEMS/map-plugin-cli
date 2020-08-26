@@ -4,7 +4,7 @@ const webpack = require('webpack');
 const vinylFs = require('vinyl-fs');
 const archiver = require('archiver');
 const { getProdWebpackConfig } = require('./getWebpackConfig');
-const getPluginName = require('./getPluginName');
+const { getPluginName } = require('./packageJsonHelpers');
 const { resolveContext, getContext } = require('./context');
 
 /**
@@ -98,20 +98,23 @@ function zip(name) {
  * @return {Promise<void>}
  */
 function compile(options) {
-  return new Promise((resolve, reject) => {
-    webpack(getProdWebpackConfig(options), (err, stats) => {
-      if (err) {
-        console.error(err);
-        reject(err);
-      } else if (stats.hasErrors()) {
-        console.log(stats.compilation.errors);
-        reject(stats.compilation.errors[0].Error);
-      } else {
-        console.log(`build ${options.modern ? 'modern' : 'legacy' }`);
-        resolve();
-      }
+  return getProdWebpackConfig(options)
+    .then((webpackConfig) => {
+      return new Promise((resolve, reject) => {
+        webpack(webpackConfig, (err, stats) => {
+          if (err) {
+            console.error(err);
+            reject(err);
+          } else if (stats.hasErrors()) {
+            console.log(stats.compilation.errors);
+            reject(stats.compilation.errors[0].Error);
+          } else {
+            console.log(`build ${options.modern ? 'modern' : 'legacy' }`);
+            resolve();
+          }
+        });
+      });
     });
-  });
 }
 
 /**
