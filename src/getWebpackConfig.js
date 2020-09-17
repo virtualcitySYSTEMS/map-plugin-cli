@@ -24,7 +24,8 @@ const buildMode = {
  * @typedef {GetWebpackOptions} ProdOptions
  * @property {string} pluginName - the name of the plugin being built
  * @property {boolean|undefined} modern - build for modern browsers
- * @property {string|undefined} library - a library name to give to your plugin
+ * @property {string|boolean|undefined} library - whether to create a library. true will create a library using the plugin name. a string overrides the library name
+ * @property {string|undefined} [libraryTarget='commonjs2'] - the library target. has no effect if library is not specified
  */
 
 /**
@@ -198,11 +199,19 @@ async function getProdWebpackConfig(options) {
   }
 
   const config = getBaseConfig(options);
+  let libraryTarget;
+  let library;
+  if (options.library) {
+    library = typeof options.library === 'string' ? options.library : options.pluginName;
+    libraryTarget = options.libraryTarget || 'commonjs2';
+    console.log(`creating ${library} as a ${libraryTarget} library`);
+  }
+
   config.output = {
     path: resolveContext('dist'),
     filename: options.modern ? `${options.pluginName}.es6.js` : `${options.pluginName}.js`,
-    library: options.library,
-    libraryTarget: options.library ? 'umd' : undefined,
+    library,
+    libraryTarget,
     publicPath: './',
   };
 
