@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const program = require('commander');
 const { version } = require('./package.json');
-const { serve, build } = require('./index');
+const { serve, build, compile } = require('./index');
 
 program.version(version);
 
@@ -23,6 +23,8 @@ program
   .option('-n, --plugin-name [name]', 'a name override to use. extracts the name from the package.json by default')
   .option('--no-condense-whitespace', 'do not condense white space')
   .option('-l, --library [name]', 'whether to create a library with [name] or not')
-  .option('--library-target', 'library target', 'commonjs2');
+  .option('--library-target', 'library target', 'commonjs2')
+  .option('-e, --entry <entry>', 'entrypoint override')
+  .action(compile);
 
 program.parse(process.argv);

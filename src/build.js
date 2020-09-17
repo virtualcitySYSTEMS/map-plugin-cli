@@ -135,4 +135,7 @@ async function build(options) {
   console.log('build finished');
 }
 
-module.exports = build;
+module.exports = {
+  build,
+  compile,
+};
