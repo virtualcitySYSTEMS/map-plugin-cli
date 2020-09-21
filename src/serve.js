@@ -1,5 +1,6 @@
 const path = require('path');
 const https = require('https');
+const { URL } = require('url');
 const fs = require('fs');
 const WebpackDevServer = require('webpack-dev-server');
 const webpack = require('webpack');
@@ -7,9 +8,23 @@ const { getContext, resolveContext } = require('./context');
 const { getDevWebpackConfig } = require('./getWebpackConfig');
 const { getPluginName } = require('./packageJsonHelpers');
 
-function getIndexHtml(url, fileName) {
+function getIndexHtml(stringUrl, fileName, auth) {
   return new Promise((resolve, reject) => {
-    https.get(`${url}/index.html`, (res) => {
+    const url = new URL(stringUrl);
+    const options = {
+      host: url.host,
+      path: url.pathname,
+    };
+
+    if (auth) {
+      options.headers = { Authorization: `Basic ${Buffer.from(auth).toString('base64')}` };
+    }
+
+    https.get(options, (res) => {
+      if (res.statusCode >= 400) {
+        console.error('got status code: ', res.statusCode);
+        reject(new Error(`StatusCode ${res.statusCode}`));
+      }
       const write = fs.createWriteStream(resolveContext(fileName));
       write.on('finish', resolve);
       write.on('error', (err) => {
@@ -22,17 +37,23 @@ function getIndexHtml(url, fileName) {
 
 let configJson = null;
 
-async function readConfigJson() {
-  const configFileName = resolveContext('config.json');
+/**
+ * @param {string} fileName
+ * @return {Promise<Object>}
+ */
+async function readConfigJson(fileName) {
+  const configFileName = fileName || resolveContext('config.json');
   let config = {};
   if (fs.existsSync(configFileName)) {
     const content = await fs.promises.readFile(configFileName);
     config = JSON.parse(content.toString());
   }
+  // eslint-disable-next-line no-underscore-dangle
+  delete config._esmodule;
   return config;
 }
 
-function getConfigJson(vcm, name) {
+function getConfigJson(vcm, name, { auth, config: configFile }) {
   if (configJson) {
     return Promise.resolve(configJson);
   }
@@ -49,7 +70,7 @@ function getConfigJson(vcm, name) {
           configJson = JSON.parse(data);
           configJson.ui = configJson.ui || {};
           configJson.ui.plugins = configJson.ui.plugins || {};
-          const pluginConfig = await readConfigJson();
+          const pluginConfig = await readConfigJson(configFile);
           // eslint-disable-next-line no-underscore-dangle
           pluginConfig._entry = '_dist/plugin.js';
           configJson.ui.plugins[name] = pluginConfig;
@@ -60,7 +81,16 @@ function getConfigJson(vcm, name) {
       });
     }
     if (isWebVcm) {
-      https.get(`${vcm}/config.json`, (res) => {
+      const url = new URL(`${vcm}/config.json`);
+      const options = {
+        host: url.host,
+        path: url.pathname,
+      };
+
+      if (auth) {
+        options.headers = { Authorization: `Basic ${Buffer.from(auth).toString('base64')}` };
+      }
+      https.get(options, (res) => {
         if (res.statusCode < 400) {
           handleStream(res);
         }
@@ -79,13 +109,16 @@ async function serve(options) {
   const proxy = {};
   const index = 'index.html'; // XXX maybe use some random filename when web to not clobber anything
   if (isWebVcm) {
-    await getIndexHtml(vcm, index);
-    ['/lib', '/css', '/fonts', '/images', '/img', '/templates', '/datasource-data', '/plugins'].forEach((p) => {
-      proxy[p] = {
-        target: vcm,
-        changeOrigin: true,
-      };
-    });
+    await getIndexHtml(vcm, index, options.auth);
+    ['/lib', '/css', '/fonts', '/images', '/img', '/templates', '/datasource-data', '/plugins']
+      .concat(options.proxyRoute)
+      .forEach((p) => {
+        proxy[p] = {
+          target: vcm,
+          changeOrigin: true,
+          auth: options.auth,
+        };
+      });
   }
   const webpackConfig = await getDevWebpackConfig(options);
   const server = new WebpackDevServer(webpack(webpackConfig), {
@@ -105,7 +138,7 @@ async function serve(options) {
     },
     before(app) {
       app.use('/config.json', (req, res) => {
-        getConfigJson(vcm, pluginName)
+        getConfigJson(vcm, pluginName, options)
           .then((config) => {
             const stringConfig = JSON.stringify(config);
             res.setHeader('Content-Type', 'application/json');
