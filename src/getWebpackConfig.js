@@ -269,6 +269,7 @@ async function getDevWebpackConfig(options) {
 }
 
 module.exports = {
+  getBaseConfig,
   getProdWebpackConfig,
   getDevWebpackConfig,
 };
