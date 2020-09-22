@@ -135,7 +135,4 @@ async function pack(options) {
   console.log('build finished');
 }
 
-module.exports = {
-  pack,
-  compile,
-};
+module.exports = pack;
