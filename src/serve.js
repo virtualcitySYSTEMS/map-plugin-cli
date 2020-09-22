@@ -1,5 +1,6 @@
 const path = require('path');
 const https = require('https');
+const http = require('http');
 const { URL } = require('url');
 const fs = require('fs');
 const WebpackDevServer = require('webpack-dev-server');
@@ -8,19 +9,26 @@ const { getContext, resolveContext } = require('./context');
 const { getDevWebpackConfig } = require('./getWebpackConfig');
 const { getPluginName } = require('./packageJsonHelpers');
 
+function httpGet(stringUrl, auth, handler) {
+  const url = new URL(stringUrl);
+  const options = {
+    host: url.host,
+    path: url.pathname,
+  };
+
+  if (auth) {
+    options.headers = { Authorization: `Basic ${Buffer.from(auth).toString('base64')}` };
+  }
+  if (url.protocol === 'https:') {
+    https.get(options, handler);
+  } else {
+    http.get(options, handler);
+  }
+}
+
 function getIndexHtml(stringUrl, fileName, auth) {
   return new Promise((resolve, reject) => {
-    const url = new URL(stringUrl);
-    const options = {
-      host: url.host,
-      path: url.pathname,
-    };
-
-    if (auth) {
-      options.headers = { Authorization: `Basic ${Buffer.from(auth).toString('base64')}` };
-    }
-
-    https.get(options, (res) => {
+    httpGet(stringUrl, auth, (res) => {
       if (res.statusCode >= 400) {
         console.error('got status code: ', res.statusCode);
         reject(new Error(`StatusCode ${res.statusCode}`));
@@ -81,16 +89,7 @@ function getConfigJson(vcm, name, { auth, config: configFile }) {
       });
     }
     if (isWebVcm) {
-      const url = new URL(`${vcm}/config.json`);
-      const options = {
-        host: url.host,
-        path: url.pathname,
-      };
-
-      if (auth) {
-        options.headers = { Authorization: `Basic ${Buffer.from(auth).toString('base64')}` };
-      }
-      https.get(options, (res) => {
+      httpGet(`${vcm}config.json`, auth, (res) => {
         if (res.statusCode < 400) {
           handleStream(res);
         }
@@ -102,16 +101,17 @@ function getConfigJson(vcm, name, { auth, config: configFile }) {
 }
 
 async function serve(options) {
-  const { vcm } = options;
+  let { vcm } = options;
   const pluginName = options.pluginName || await getPluginName();
   const isWebVcm = /^https?:\/\//.test(vcm);
 
   const proxy = {};
   const index = 'index.html'; // XXX maybe use some random filename when web to not clobber anything
   if (isWebVcm) {
+    vcm = `${vcm.replace(/\/$/, '')}/`;
     await getIndexHtml(vcm, index, options.auth);
     ['/lib', '/css', '/fonts', '/images', '/img', '/templates', '/datasource-data', '/plugins']
-      .concat(options.proxyRoute)
+      .concat(options.proxyRoute) // TODO allow for more complex proxy options, e.g add a target such as --proxyRoute myProxy=myTarget
       .forEach((p) => {
         proxy[p] = {
           target: vcm,
