@@ -216,15 +216,18 @@ async function getProdWebpackConfig(options) {
   };
 
   config.mode = options.mode;
-  config.devtool = false;
-  config.optimization = {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        extractComments: false,
-      }),
-    ],
-  };
+  if (options.mode !== 'development') {
+    config.devtool = false;
+    config.optimization = {
+      minimize: true,
+      minimizer: [
+        new TerserPlugin({
+          extractComments: false,
+        }),
+      ],
+    };
+  }
+
   return config;
 }
 

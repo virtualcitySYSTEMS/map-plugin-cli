@@ -31,6 +31,7 @@ program
   .command('compile')
   .defaultBuildOptions()
   .option('--no-modern', 'build for legacy')
+  .option('--development', 'set mode to development')
   .action(compile);
 
 program.parse(process.argv);
