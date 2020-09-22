@@ -2,14 +2,14 @@
 const program = require('commander');
 require('./src/defaultCommand');
 const { version } = require('./package.json');
-const { serve, build, compile } = require('./index');
+const { serve, build, pack } = require('./index');
 
 program.version(version);
 
 program
-  .command('build')
+  .command('pack')
   .defaultBuildOptions()
-  .action(build);
+  .action(pack);
 
 program
   .command('serve')
@@ -28,10 +28,10 @@ program
   .action(serve);
 
 program
-  .command('compile')
+  .command('build')
   .defaultBuildOptions()
   .option('--no-modern', 'build for legacy')
   .option('--development', 'set mode to development')
-  .action(compile);
+  .action(build);
 
 program.parse(process.argv);

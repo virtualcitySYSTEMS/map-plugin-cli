@@ -1,9 +1,9 @@
 const serve = require('./src/serve');
-const { build } = require('./src/build');
-const compile = require('./src/compile');
+const build = require('./src/build');
+const { pack } = require('./src/pack');
 
 module.exports = {
   serve,
   build,
-  compile,
+  pack,
 };
