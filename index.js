@@ -1,6 +1,6 @@
 const serve = require('./src/serve');
 const build = require('./src/build');
-const { pack } = require('./src/pack');
+const pack = require('./src/pack');
 
 module.exports = {
   serve,
