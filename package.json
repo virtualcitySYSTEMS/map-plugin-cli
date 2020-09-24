@@ -1,6 +1,6 @@
 {
   "name": "vcmplugin-cli",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A CLI to help develop and build plugins for the virtualcityMAP",
   "main": "index.js",
   "bin": {
