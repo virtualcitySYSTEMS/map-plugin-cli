@@ -238,7 +238,7 @@ async function getProdWebpackConfig(options) {
 async function getDevWebpackConfig(options) {
   options.entry = options.entry || {
     plugin: [
-      `webpack-dev-server/client?http://192.168.1.236:8080:${options.port}`,
+      `webpack-dev-server/client?http://0.0.0.0:${options.port}/`,
       'webpack/hot/only-dev-server',
       await getPluginEntry() || './src/index.js',
     ],
@@ -247,7 +247,7 @@ async function getDevWebpackConfig(options) {
   if (typeof options.entry === 'string') {
     options.entry = {
       plugin: [
-        `webpack-dev-server/client?http://192.168.1.236:8080/:${options.port}`,
+        `webpack-dev-server/client?http://0.0.0.0:${options.port}/`,
         'webpack/hot/only-dev-server',
         options.entry,
       ],
