@@ -101,15 +101,15 @@ function getConfigJson(vcm, name, { auth, config: configFile }) {
 }
 
 async function serve(options) {
-  let { vcm } = options;
+  let { vcm, index } = options;
   const pluginName = options.pluginName || await getPluginName();
   const isWebVcm = /^https?:\/\//.test(vcm);
 
   const proxy = {};
-  const index = 'index.html'; // XXX maybe use some random filename when web to not clobber anything
+  const indexFilename = 'index.html'; // XXX maybe use some random filename when web to not clobber anything
   if (isWebVcm) {
     vcm = `${vcm.replace(/\/$/, '')}/`;
-    await getIndexHtml(vcm, index, options.auth);
+    await getIndexHtml(`${vcm}/${index}`, indexFilename, options.auth);
     ['/lib', '/css', '/fonts', '/images', '/img', '/templates', '/datasource-data', '/plugins']
       .concat(options.proxyRoute) // TODO allow for more complex proxy options, e.g add a target such as --proxyRoute myProxy=myTarget
       .forEach((p) => {
