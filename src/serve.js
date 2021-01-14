@@ -136,6 +136,9 @@ async function serve(options) {
         { from: /./, to: '/index.html' },
       ],
     },
+    staticOptions: {
+      fallthrough: false,
+    },
     before(app) {
       app.use('/config.json', (req, res) => {
         getConfigJson(vcm, pluginName, options)
@@ -145,6 +148,19 @@ async function serve(options) {
             res.write(stringConfig);
             res.end();
           });
+      });
+    },
+    after(app) {
+      app.use('/', (err, req, res, next) => {
+        if (err.statusCode === 404 && isWebVcm) {
+          httpGet(`${vcm}${req.url.replace(/^\//, '')}`, options.auth, (innerRes) => {
+            if (innerRes.statusCode < 400) {
+              innerRes.pipe(res);
+            }
+          });
+        } else {
+          next();
+        }
       });
     },
     proxy,
