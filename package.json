@@ -11,7 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Ben Kuster <bkuster@virtualcitysystems.de>",
-  "license": "ISC",
+  "license": "MIT",
   "files": [
     "src/"
   ],
@@ -24,13 +24,13 @@
     "commander": "^6.0.0",
     "css-loader": "^3.6.0",
     "postcss-loader": "^3.0.0",
-    "terser-webpack-plugin": "^4.1.0",
+    "terser-webpack-plugin": "^5.1.1",
     "url-loader": "^4.1.0",
     "vinyl-fs": "^3.0.3",
     "vue": "^2.6.12",
     "vue-loader": "^15.9.3",
     "vue-template-compiler": "^2.6.12",
-    "webpack": "^4.44.1",
+    "webpack": "^5.20.2",
     "webpack-dev-server": "^3.11.0"
   },
   "devDependencies": {
