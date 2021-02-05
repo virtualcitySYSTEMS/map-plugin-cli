@@ -13,7 +13,7 @@ Command.prototype.defaultBuildOptions = function defaultBuildOptions() {
   this
     .defaultOptions()
     .option('-l, --library [name]', 'whether to create a library with [name] or not')
-    .option('--library-target', 'library target', 'commonjs2');
+    .option('--library-target [target]', 'library target', 'commonjs2');
 
   return this;
 };

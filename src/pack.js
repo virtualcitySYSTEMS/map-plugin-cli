@@ -46,8 +46,12 @@ async function ensureConfigJson() {
     const content = await fs.promises.readFile(configFileName);
     config = JSON.parse(content.toString());
   }
-  // eslint-disable-next-line no-underscore-dangle
-  config._esmodule = true;
+  const packageJsonFileName = resolveContext('package.json');
+  if (fs.existsSync(packageJsonFileName) && !config.version) {
+    const content = await fs.promises.readFile(packageJsonFileName);
+    const { version } = JSON.parse(content.toString());
+    config.version = `^${version}`;
+  }
   await fs.promises.writeFile(resolveContext('dist', 'config.json'), JSON.stringify(config, null, 2));
 }
 
@@ -124,7 +128,6 @@ function compile(options) {
 async function pack(options) {
   options.pluginName = options.pluginName || await getPluginName();
   console.log(`building plugin: ${options.pluginName}`);
-  await compile(options);
   options.modern = true;
   await compile(options);
   await replaceAssets(options.pluginName);
