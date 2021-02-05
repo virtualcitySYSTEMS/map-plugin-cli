@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const autoprefixer = require('autoprefixer');
 const { getPluginEntry } = require('./packageJsonHelpers');
 const { resolveContext, getContext } = require('./context');
 
@@ -145,6 +146,9 @@ function getBaseConfig(options) {
               loader: 'postcss-loader',
               options: {
                 sourceMap: false,
+                plugins: [
+                  autoprefixer,
+                ],
               },
             },
           ],
@@ -170,6 +174,9 @@ function getBaseConfig(options) {
               loader: 'postcss-loader',
               options: {
                 sourceMap: false,
+                plugins: [
+                  autoprefixer,
+                ],
               },
             },
           ],
