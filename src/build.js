@@ -9,7 +9,7 @@ async function build(options) {
     } else if (stats.hasErrors()) {
       console.error(stats.compilation.errors);
     } else {
-      console.log(`built ${options.modern ? 'modern' : 'legacy' } ${options.pluginName}`); // XXX replace with spinner for watch
+      console.log(`built ${options.pluginName}`); // XXX replace with spinner for watch
     }
   }
 

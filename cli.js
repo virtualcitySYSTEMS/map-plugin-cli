@@ -31,7 +31,6 @@ program
 program
   .command('build')
   .defaultBuildOptions()
-  .option('--no-modern', 'build for legacy')
   .option('--development', 'set mode to development')
   .option('--watch', 'watch file changes')
   .action(build);

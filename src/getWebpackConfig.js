@@ -73,7 +73,7 @@ function getBaseConfig(options) {
           include: [resolveContext('src')],
           options: {
             presets: [
-              '@vue/babel-preset-app',
+              path.join(__dirname, '..', 'node_modules', '@vue', 'babel-preset-app'),
             ],
           },
         },
@@ -192,7 +192,7 @@ function getBaseConfig(options) {
 async function getProdWebpackConfig(options) {
   options.entry = options.entry || { plugin: await getPluginEntry() || './src/index' };
   options.mode = options.mode || buildMode.PRODUCTION;
-  process.env.VUE_CLI_MODERN_BUILD = options.modern;
+  process.env.VUE_CLI_MODERN_BUILD = true;
 
   if (typeof options.entry === 'string') {
     options.entry = { plugin: options.entry };
@@ -209,7 +209,7 @@ async function getProdWebpackConfig(options) {
 
   config.output = {
     path: resolveContext('dist'),
-    filename: options.modern ? `${options.pluginName}.es6.js` : `${options.pluginName}.js`,
+    filename: `${options.pluginName}.js`,
     library,
     libraryTarget,
     publicPath: './',

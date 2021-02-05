@@ -82,7 +82,6 @@ function zip(name) {
       ['README.md'],
       ['dist', 'config.json'],
       ['dist', `${name}.js`],
-      ['dist', `${name}.es6.js`],
     ].forEach((fileArray) => {
       archive.file(resolveContext(...fileArray), { name: `${name}/${fileArray.pop()}` });
     });
@@ -113,7 +112,7 @@ function compile(options) {
             console.log(stats.compilation.errors);
             reject(stats.compilation.errors[0].Error);
           } else {
-            console.log(`build ${options.modern ? 'modern' : 'legacy' }`);
+            console.log(`build ${options.pluginName}`);
             resolve();
           }
         });
@@ -128,7 +127,6 @@ function compile(options) {
 async function pack(options) {
   options.pluginName = options.pluginName || await getPluginName();
   console.log(`building plugin: ${options.pluginName}`);
-  options.modern = true;
   await compile(options);
   await replaceAssets(options.pluginName);
   console.log('fixed asset paths');
