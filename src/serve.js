@@ -76,12 +76,11 @@ function getConfigJson(vcm, name, { auth, config: configFile }) {
       stream.on('close', async () => {
         try {
           configJson = JSON.parse(data);
-          configJson.ui = configJson.ui || {};
-          configJson.ui.plugins = configJson.ui.plugins || {};
+          configJson.plugins = configJson.plugins || {};
           const pluginConfig = await readConfigJson(configFile);
           // eslint-disable-next-line no-underscore-dangle
-          pluginConfig._entry = '_dist/plugin.js';
-          configJson.ui.plugins[name] = pluginConfig;
+          pluginConfig.entry = '/_dist/plugin.js';
+          configJson.plugins[name] = pluginConfig;
           resolve(configJson);
         } catch (e) {
           reject(e);
@@ -143,7 +142,7 @@ async function serve(options) {
       app.use('/config.json', (req, res) => {
         getConfigJson(vcm, pluginName, options)
           .then((config) => {
-            const stringConfig = JSON.stringify(config);
+            const stringConfig = JSON.stringify(config, null, 2);
             res.setHeader('Content-Type', 'application/json');
             res.write(stringConfig);
             res.end();
