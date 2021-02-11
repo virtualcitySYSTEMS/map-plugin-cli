@@ -126,7 +126,7 @@ async function serve(options) {
     open: false,
     injectClient: false,
     publicPath: '/_dist',
-    logLevel: 'silent',
+    logLevel: 'warn',
     clientLogLevel: 'silent',
     useLocalIp: true,
     historyApiFallback: {
