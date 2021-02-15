@@ -76,11 +76,16 @@ function getConfigJson(vcm, name, { auth, config: configFile }) {
       stream.on('close', async () => {
         try {
           configJson = JSON.parse(data);
-          configJson.plugins = configJson.plugins || {};
+          configJson.plugins = configJson.plugins || [];
           const pluginConfig = await readConfigJson(configFile);
           // eslint-disable-next-line no-underscore-dangle
           pluginConfig.entry = '/_dist/plugin.js';
-          configJson.plugins[name] = pluginConfig;
+          const idx = configJson.plugins.findIndex(p => p.name === name);
+          if (idx > -1) {
+            configJson.plugins.splice(idx, 1, pluginConfig);
+          } else {
+            configJson.plugins.push(pluginConfig);
+          }
           resolve(configJson);
         } catch (e) {
           reject(e);
