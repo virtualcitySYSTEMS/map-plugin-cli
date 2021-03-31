@@ -80,6 +80,7 @@ function getConfigJson(vcm, name, { auth, config: configFile }) {
           const pluginConfig = await readConfigJson(configFile);
           // eslint-disable-next-line no-underscore-dangle
           pluginConfig.entry = '/_dist/plugin.js';
+          pluginConfig.name = name;
           const idx = configJson.plugins.findIndex(p => p.name === name);
           if (idx > -1) {
             configJson.plugins.splice(idx, 1, pluginConfig);

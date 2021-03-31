@@ -20,7 +20,7 @@ program
   .option('--auth <user:password>', 'an optional auth to append to proxy requests')
   .option('-c, --config <config>', 'a config override to not use the default plugin config')
   .option('--proxyRoute <route>', 'a route to proxy as well (e.g. if you have additional proxies on your server)', (val, prev) => {
-    if (prev) {
+    if (!prev) {
       return [val];
     }
     prev.push(val);
