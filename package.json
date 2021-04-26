@@ -16,7 +16,8 @@
     "src/"
   ],
   "dependencies": {
-    "@babel/core": "^7.12.13",
+    "@babel/core": "^7.10.2",
+    "@babel/runtime": "^7.13.10",
     "@vue/babel-preset-app": "^4.5.4",
     "archiver": "^5.0.0",
     "autoprefixer": "^9.8.6",
