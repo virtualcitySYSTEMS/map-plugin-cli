@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const autoprefixer = require('autoprefixer');
+const isInstalledGlobally = require('is-installed-globally');
 const { getPluginEntry } = require('./packageJsonHelpers');
 const { resolveContext, getContext } = require('./context');
 
@@ -74,7 +75,7 @@ function getBaseConfig(options) {
           include: [resolveContext('src')],
           options: {
             presets: [
-              path.join(__dirname, '..', 'node_modules', '@vue', 'babel-preset-app'),
+              path.join(__dirname, '..', isInstalledGlobally ? 'node_modules' : '..', '@vue', 'babel-preset-app'),
             ],
           },
         },
