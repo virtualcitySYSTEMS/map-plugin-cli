@@ -24,7 +24,6 @@
     "babel-loader": "^8.1.0",
     "commander": "^6.0.0",
     "css-loader": "^3.6.0",
-    "is-installed-globally": "^0.4.0",
     "postcss-loader": "^3.0.0",
     "terser-webpack-plugin": "^5.1.1",
     "url-loader": "^4.1.0",
