@@ -49,6 +49,11 @@ function getBaseConfig(options) {
       alias: {
         '@': resolveContext('src'),
       },
+      modules: [
+        path.join(__dirname, '..', 'node_modules'),
+        'node_modules',
+        resolveContext('node_modules'),
+      ],
     },
     resolveLoader: {
       modules: [
