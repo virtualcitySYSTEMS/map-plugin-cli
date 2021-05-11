@@ -25,8 +25,6 @@ const buildMode = {
  * @typedef {GetWebpackOptions} ProdOptions
  * @property {string} pluginName - the name of the plugin being built
  * @property {boolean|undefined} modern - build for modern browsers
- * @property {string|boolean|undefined} library - whether to create a library. true will create a library using the plugin name. a string overrides the library name
- * @property {string|undefined} [libraryTarget='commonjs2'] - the library target. has no effect if library is not specified
  */
 
 /**
@@ -42,6 +40,12 @@ const buildMode = {
  */
 function getBaseConfig(options) {
   return {
+    experiments: {
+      outputModule: true,
+    },
+    externals: {
+      '@vcmap/core': 'import @vcmap-core.js',
+    },
     entry: options.entry,
     context: getContext(),
     resolve: {
@@ -211,19 +215,12 @@ async function getProdWebpackConfig(options) {
   }
 
   const config = getBaseConfig(options);
-  let libraryTarget;
-  let library;
-  if (options.library) {
-    library = typeof options.library === 'string' ? options.library : options.pluginName;
-    libraryTarget = options.libraryTarget || 'commonjs2';
-    console.log(`creating ${library} as a ${libraryTarget} library`);
-  }
-
   config.output = {
     path: resolveContext('dist'),
     filename: `${options.pluginName}.js`,
-    library,
-    libraryTarget,
+    library: {
+      type: 'module',
+    },
     publicPath: './',
   };
 

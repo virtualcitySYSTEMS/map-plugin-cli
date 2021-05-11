@@ -34,14 +34,16 @@ async function getPluginName() {
 }
 
 /**
- * @return {Promise<string|undefined>}
+ * @returns {Promise<string|undefined>}
  */
 async function getPluginEntry() {
-  const { main } = await getPackageJson();
-  if (main && !path.isAbsolute(main) && !/^\./.test(main)) { // webpack requires a dot for relative paths
-    return `./${main}`;
+  const { main, module, type } = await getPackageJson();
+
+  const entry = type === 'module' ? module : main;
+  if (entry && !path.isAbsolute(entry) && !/^\./.test(entry)) { // webpack requires a dot for relative paths
+    return `./${entry}`;
   }
-  return main;
+  return entry;
 }
 
 module.exports = {
