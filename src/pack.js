@@ -9,7 +9,7 @@ const { resolveContext, getContext } = require('./context');
 
 /**
  * @param {string} name
- * @return {Promise<void>}
+ * @returns {Promise<void>}
  */
 function replaceAssets(name) {
   const replaceTransform = new Transform({
@@ -37,7 +37,7 @@ function replaceAssets(name) {
 }
 
 /**
- * @return {Promise<void>}
+ * @returns {Promise<void>}
  */
 async function ensureConfigJson() {
   const configFileName = resolveContext('config.json');
@@ -57,7 +57,7 @@ async function ensureConfigJson() {
 
 /**
  * @param {string} name
- * @return {Promise<void>}
+ * @returns {Promise<void>}
  */
 function zip(name) {
   return new Promise((resolve, reject) => {
@@ -98,7 +98,7 @@ function zip(name) {
 
 /**
  * @param {ProdOptions} options
- * @return {Promise<void>}
+ * @returns {Promise<void>}
  */
 function compile(options) {
   return getProdWebpackConfig(options)
@@ -122,7 +122,7 @@ function compile(options) {
 
 /**
  * @param {ProdOptions} options
- * @return {Promise<void>}
+ * @returns {Promise<void>}
  */
 async function pack(options) {
   options.pluginName = options.pluginName || await getPluginName();

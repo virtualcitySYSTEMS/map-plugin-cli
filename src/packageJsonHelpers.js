@@ -2,11 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const { resolveContext } = require('./context');
 
-/** @tpye {Object|null} */
+/** @type {Object|null} */
 let packageJson = null;
 
 /**
- * @return {Promise<Object>}
+ * @returns {Promise<Object>}
  */
 async function getPackageJson() {
   if (!packageJson) {
@@ -23,7 +23,7 @@ async function getPackageJson() {
 }
 
 /**
- * @return {Promise<string>}
+ * @returns {Promise<string>}
  */
 async function getPluginName() {
   const { name } = await getPackageJson();

@@ -2,9 +2,13 @@
 const program = require('commander');
 require('./src/defaultCommand');
 const { version } = require('./package.json');
-const { serve, build, pack } = require('./index');
+const { create, serve, build, pack } = require('./index');
 
 program.version(version);
+
+program
+  .command('create <pluginName>')
+  .action(create);
 
 program
   .command('pack')

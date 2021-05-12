@@ -47,7 +47,7 @@ let configJson = null;
 
 /**
  * @param {string} fileName
- * @return {Promise<Object>}
+ * @returns {Promise<Object>}
  */
 async function readConfigJson(fileName) {
   const configFileName = fileName || resolveContext('config.json');

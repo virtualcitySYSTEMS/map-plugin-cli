@@ -14,7 +14,7 @@ const { getPluginEntry } = require('./packageJsonHelpers');
  *   }
  * }
  * @param {Object=} env
- * @return {webpack.Configuration|Promise<webpack.Configuration>}
+ * @returns {webpack.Configuration|Promise<webpack.Configuration>}
  */
 function getConfig(env) {
   if (env && env.ENTRY) {

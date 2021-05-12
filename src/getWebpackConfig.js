@@ -36,7 +36,7 @@ const buildMode = {
 
 /**
  * @param {GetWebpackOptions} options
- * @return {webpack.Configuration}
+ * @returns {webpack.Configuration}
  */
 function getBaseConfig(options) {
   return {
@@ -203,7 +203,7 @@ function getBaseConfig(options) {
 
 /**
  * @param {ProdOptions} options
- * @return {Promise<webpack.Configuration>}
+ * @returns {Promise<webpack.Configuration>}
  */
 async function getProdWebpackConfig(options) {
   options.entry = options.entry || { plugin: await getPluginEntry() || './src/index' };
@@ -242,7 +242,7 @@ async function getProdWebpackConfig(options) {
 
 /**
  * @param {DevOptions} options
- * @return {Promise<webpack.Configuration>}
+ * @returns {Promise<webpack.Configuration>}
  */
 async function getDevWebpackConfig(options) {
   options.entry = options.entry || {
