@@ -267,6 +267,9 @@ async function getDevWebpackConfig(options) {
   config.output = {
     globalObject: '(typeof self !== \'undefined\' ? self : this)',
     path: resolveContext('_dist'),
+    library: {
+      type: 'module',
+    },
     filename: '[name].js',
     publicPath: '/_dist',
   };
