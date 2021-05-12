@@ -46,11 +46,18 @@ async function ensureConfigJson() {
     const content = await fs.promises.readFile(configFileName);
     config = JSON.parse(content.toString());
   }
-  const packageJsonFileName = resolveContext('package.json');
-  if (fs.existsSync(packageJsonFileName) && !config.version) {
-    const content = await fs.promises.readFile(packageJsonFileName);
-    const { version } = JSON.parse(content.toString());
-    config.version = `^${version}`;
+  if (!config.version || !config.name) {
+    const packageJsonFileName = resolveContext('package.json');
+    if (fs.existsSync(packageJsonFileName)) {
+      const content = await fs.promises.readFile(packageJsonFileName);
+      const { version, name } = JSON.parse(content.toString());
+      if (!config.version) {
+        config.version = `^${version}`;
+      }
+      if (!config.name) {
+        config.name = name;
+      }
+    }
   }
   await fs.promises.writeFile(resolveContext('dist', 'config.json'), JSON.stringify(config, null, 2));
 }
