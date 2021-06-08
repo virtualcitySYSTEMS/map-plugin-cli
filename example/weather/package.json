@@ -1,0 +1,16 @@
+{
+  "name": "weather",
+  "version": "1.0.0",
+  "description": "example weather plugin",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "vcmplugin build",
+    "pack": "vcmplugin pack"
+  },
+  "author": "vcs <support@vc.systems>",
+  "license": "ISC",
+  "engines": {
+    "vcm": ">=4.0"
+  },
+  "dependencies": {}
+}
