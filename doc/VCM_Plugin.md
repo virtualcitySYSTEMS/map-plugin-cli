@@ -33,11 +33,11 @@ For more general information see [www.docs.npmjs.com](https://docs.npmjs.com/cli
 
 The config contains all relevant parameters of a plugin. The values defined in this `config.json` might serve as default values.
 Adding a plugin to a VC MAP for **productive use** the same set of parameters has to be configured in your VC MAP [config](./VCM_API_Introduction.md#2-config) plugins section.
-In the simplest case a plugin's config only contains the plugins name and entry point:
+In the simplest case a plugin's config only contains the plugins name and version:
 ```json
 {
   "name": "myFirstPlugin",
-  "entry": "plugins/myFirstPlugin/myFirstPlugin.js"
+  "version": "1.0.0"
 }  
 ```
 
@@ -49,8 +49,18 @@ You should provide a README file describing your plugins capabilities. Explain b
            
 The source folder contains your plugins api and ui components. As entry point of a plugin serves the `index.js`.
 It exports modules, which are imported by the VC MAP core. 
-See [plugin interface](#1-plugin-interface) and [Plugin Tutorial](./doc/VCM_Plugin_Tutorial.md).
+See [plugin interface](#1-plugin-interface) and [Plugin Tutorial](./VCM_Plugin_Tutorial.md).
 
 ### 5. `assets` folder
 
 Assets like image, sound or video files are stored in and imported from the assets folder.
+
+## 3. Build and deploy
+
+For deployment plugins are packed and provided minified.
+[VCM Plugin CLI](../README.md#4-integrating-a-plugin-in-a-productive-vc-map) offers the corresponding functionality.
+
+To use the plugin productively in a hosted map, copy and unzip your packed plugin on your server to `{vcm-root}/plugins`
+and add a plugin configuration to the VC MAP [config.json](./VCM_API_Introduction.md#2-config) plugins array.
+
+See [Plugin Tutorial](./VCM_Plugin_Tutorial.md#8-building-and-packing-your-plugin).

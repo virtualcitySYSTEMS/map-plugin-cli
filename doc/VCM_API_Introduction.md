@@ -80,6 +80,10 @@ To get a map by name call:
 ```js
 vcs.vcm.Framework.getInstance().getMapByName(name);
 ```
+To get a map by type (e.g., Cesium Map) call:
+```js
+vcs.vcm.Framework.getInstance().getMapByType('vcs.vcm.maps.Cesium');
+```
 See also API Documentation: [vcs.vcm.maps](https://lib.virtualcitymap.de/v4.0.x/doc/vcs.vcm.maps.html)
 
 ## 4. Layer
@@ -87,14 +91,13 @@ See also API Documentation: [vcs.vcm.maps](https://lib.virtualcitymap.de/v4.0.x/
 Layers are an abstraction level to manage the map's data in a structured way.
 There are multiple layer types for different data sources, which have specific implementations for all or some map types:
 
-- `vcs.vcm.layer.RasterLayer`
+- `vcs.vcm.layer.RasterLayer` (not Oblique)
     - `vcs.vcm.layer.SingleImage`
     - `vcs.vcm.layer.TMS`
     - `vcs.vcm.layer.WMS`
     - `vcs.vcm.layer.WMTS`
 - `vcs.vcm.layer.FeatureLayer`
     - `vcs.vcm.layer.Vector`
-        - `vcs.vcm.layer.FeatureStore`
         - `vcs.vcm.layer.GeoJSON`
         - `vcs.vcm.layer.WFS`
     - `vcs.vcm.layer.VectorTile`
@@ -143,15 +146,10 @@ Util classes cannot be edited via the `config.json`.
 They provide functionality which is more general than widgets and are used in multiple locations, e.g.:
 
 - `vcs.vcm.util.Balloon`: Balloon Objects at certain positions on any map
-
 - `vcs.vcm.util.editor.AbstractEditor`: Geometry-, Feature- & Style-Layer-Editors
-
 - `vcs.vcm.util.Login`: Singleton class used for managing logins to a service. So far, only the Planner functionality requires a login
-
 - `vcs.vcm.util.Projection`: Utility functions regarding map projection and crs transformations
-
 - `vcs.vcm.util.ViewPoint`: viewpoint objects
-
 - `vcs.vcm.util.style.DeclarativeStyleItem`: Style Object, see [3d-tiles-styling](https://github.com/AnalyticalGraphicsInc/3d-tiles/tree/master/Styling)
 
 See also API Documentation: [vcs.vcm.util](https://lib.virtualcitymap.de/v4.0.x/doc/vcs.vcm.util.html)
