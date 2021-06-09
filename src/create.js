@@ -2,19 +2,25 @@ const fs = require('fs');
 const path = require('path');
 const prompts = require('prompts');
 const semver = require('semver');
+const childProcess = require('child_process');
+const { version } = require('../package.json');
 
 /**
- * @param {Object} options
- * @param {string} options.name
- * @param {string} options.version
- * @param {string} options.description
- * @param {string} options.main
- * @param {Array<Object>} options.scripts
- * @param {string} options.author
- * @param {string} options.license
- * @param {string} options.mapVersion
+ * @typedef {Object} PluginTemplateOptions
+ * @property {string} name
+ * @property {string} version
+ * @property {string} description
+ * @property {Array<Object>} scripts
+ * @property {string} author
+ * @property {string} license
+ * @property {string} mapVersion
+ * @property {boolean} addDevDep
  */
-function createPluginTemplate(options) {
+
+/**
+ * @param {PluginTemplateOptions} options
+ */
+async function createPluginTemplate(options) {
   if (!options.name) {
     console.error('please provide a plugin name as input parameter');
     process.exit(1);
@@ -22,25 +28,20 @@ function createPluginTemplate(options) {
   console.log(`creating new plugin: ${options.name}`);
 
   const pluginPath = path.join(process.cwd(), options.name);
-  fs.access(pluginPath, (rej) => {
-    if (!rej) {
-      console.error('plugin with the provided name already exists');
-      process.exit(1);
-    }
-  });
-  fs.mkdirSync(pluginPath, (err) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log('created plugin directory');
-    }
-  });
+  if (fs.existsSync(pluginPath)) {
+    console.error('plugin with the provided name already exists');
+    process.exit(1);
+  }
+
+  await fs.promises.mkdir(pluginPath);
+  console.log('created plugin directory');
 
   const packageJson = {
     name: options.name,
     version: options.version,
     description: options.description,
-    main: options.main,
+    main: 'src/index.js',
+    type: 'module',
     scripts: Object.assign({}, ...options.scripts),
     author: options.author,
     license: options.license,
@@ -48,18 +49,12 @@ function createPluginTemplate(options) {
       vcm: options.mapVersion,
     },
     dependencies: {},
+    devDependencies: options.addDevDep ? { 'vcmplugin-cli': `^${version}` } : {},
   };
 
-  fs.writeFile(
+  const writePackagePromise = fs.promises.writeFile(
     path.join(pluginPath, 'package.json'),
     JSON.stringify(packageJson, null, 2),
-    (err) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log('created package.json');
-      }
-    },
   );
 
   const configJson = {
@@ -67,57 +62,41 @@ function createPluginTemplate(options) {
     version: options.version,
   };
 
-  fs.writeFile(
+  const writeConfigPromise = fs.promises.writeFile(
     path.join(pluginPath, 'config.json'),
     JSON.stringify(configJson, null, 2),
-    (err) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log('created config.json');
-      }
-    },
   );
-  fs.writeFile(
+
+  const writeReadmePromise = fs.promises.writeFile(
     path.join(pluginPath, 'README.md'),
     [
+      `# ${options.name}`,
       'describe your plugin',
     ],
-    (err) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log('created readme.md');
-      }
-    },
   );
-  fs.mkdirSync(path.join(pluginPath, 'src'), (err) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log('created src directory');
-    }
-  });
-  fs.writeFile(
-    path.join(pluginPath, 'src', 'index.js'),
 
+  await fs.promises.mkdir(path.join(pluginPath, 'src'));
+  console.log('created src directory');
+
+  const writeIndexPromise = fs.promises.writeFile(
+    path.join(pluginPath, 'src', 'index.js'),
     ['import { version } from \'../package.json\';',
-      '\n',
+      '',
       'export default {',
       '  version,',
-      '  //preInitialize',
-      '  //postInitialize',
-      '  //registerUiPlugin',
-      '  //postUiInitialize',
+      '  // preInitialize',
+      '  // postInitialize',
+      '  // registerUiPlugin',
+      '  // postUiInitialize',
       '};'].join('\n'),
-    (err) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log('created index.js');
-      }
-    },
   );
+
+  await Promise.all([writePackagePromise, writeConfigPromise, writeReadmePromise, writeIndexPromise]);
+
+  console.log('installing dependencies...');
+  const child = childProcess.exec('npm i', { cwd: pluginPath });
+  child.stdout.pipe(process.stdout);
+  child.stderr.pipe(process.stderr);
 }
 
 /**
@@ -151,12 +130,6 @@ async function create() {
       initial: '',
     },
     {
-      type: 'text',
-      name: 'main',
-      message: 'main',
-      initial: 'src/index.js',
-    },
-    {
       type: 'multiselect',
       message: 'Add the following scripts to the package.json.',
       name: 'scripts',
@@ -180,6 +153,14 @@ async function create() {
       name: 'mapVersion',
       message: 'Map version',
       initial: '>=4.0',
+    },
+    {
+      type: 'toggle',
+      name: 'addDevDep',
+      message: 'Add vcmplugin-cli as dev dependency?',
+      initial: true,
+      active: 'yes',
+      inactive: 'no',
     },
   ];
 
