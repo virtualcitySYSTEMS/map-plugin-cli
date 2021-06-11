@@ -673,6 +673,4 @@ Alternatively, if you are using VC Publisher:
 ## 9. Example Plugin and further plugins
 
 If you followed all steps of this tutorial, you should now have a running example plugin.
-You'll also find the complete code at `example/weather`.
-
-More VC MAP plugins can be found at [github]().
+The complete code of this `weather` plugin as well as more VC MAP plugins can be found at [github](https://github.com/virtualcitySYSTEMS/map-plugin-examples).

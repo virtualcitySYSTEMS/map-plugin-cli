@@ -138,6 +138,20 @@ To deactivate a layer call:
 ```js
 myVectorLayer.deactivate();
 ```
+
+Adding and activating a layer in one asynchronous function might look like this:
+```js
+async function addAndActivateLayer(config) {
+  const framework = vcs.vcm.Framework.getInstance();
+  let layer = framework.getLayerByName(config.name);
+  if (!layer) {
+    layer = new vcs.vcm.layer.Vector(config);
+    framework.addLayer(layer);
+  }
+  await layer.activate();
+}
+```
+
 See also API Documentation: [vcs.vcm.layer](https://lib.virtualcitymap.de/v4.0.x/doc/vcs.vcm.layer.html)
 
 ## 5. Util
