@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const prompts = require('prompts');
 const semver = require('semver');
+const util = require('util');
 const childProcess = require('child_process');
 const { version } = require('../package.json');
 
@@ -72,7 +73,7 @@ async function createPluginTemplate(options) {
     [
       `# ${options.name}`,
       'describe your plugin',
-    ],
+    ].join('\n'),
   );
 
   await fs.promises.mkdir(path.join(pluginPath, 'src'));
@@ -94,9 +95,14 @@ async function createPluginTemplate(options) {
   await Promise.all([writePackagePromise, writeConfigPromise, writeReadmePromise, writeIndexPromise]);
 
   console.log('installing dependencies...');
-  const child = childProcess.exec('npm i', { cwd: pluginPath });
-  child.stdout.pipe(process.stdout);
-  child.stderr.pipe(process.stderr);
+  const exec = util.promisify(childProcess.exec);
+  try {
+    const { stdout, stderr } = await exec('npm i', { cwd: pluginPath });
+    console.log(stdout);
+    console.error(stderr);
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 /**
