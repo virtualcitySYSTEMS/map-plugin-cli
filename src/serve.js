@@ -12,7 +12,8 @@ const { getPluginName } = require('./packageJsonHelpers');
 function httpGet(stringUrl, auth, handler) {
   const url = new URL(stringUrl);
   const options = {
-    host: url.host,
+    hostname: url.hostname,
+    port: url.port,
     path: url.pathname,
   };
 
