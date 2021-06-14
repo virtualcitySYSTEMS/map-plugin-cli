@@ -42,7 +42,6 @@ async function createPluginTemplate(options) {
     version: options.version,
     description: options.description,
     main: 'src/index.js',
-    type: 'module',
     scripts: Object.assign({}, ...options.scripts),
     author: options.author,
     license: options.license,
