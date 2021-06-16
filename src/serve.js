@@ -5,6 +5,7 @@ const { URL } = require('url');
 const fs = require('fs');
 const WebpackDevServer = require('webpack-dev-server');
 const webpack = require('webpack');
+const { logger } = require('@vcsuite/cli-logger');
 const { getContext, resolveContext } = require('./context');
 const { getDevWebpackConfig } = require('./getWebpackConfig');
 const { getPluginName } = require('./packageJsonHelpers');
@@ -31,7 +32,7 @@ function getIndexHtml(stringUrl, fileName, auth) {
   return new Promise((resolve, reject) => {
     httpGet(stringUrl, auth, (res) => {
       if (res.statusCode >= 400) {
-        console.error('got status code: ', res.statusCode);
+        logger.error('got status code: ', res.statusCode);
         reject(new Error(`StatusCode ${res.statusCode}`));
       }
       const write = fs.createWriteStream(resolveContext(fileName));
@@ -107,6 +108,7 @@ function getConfigJson(vcm, name, { auth, config: configFile }) {
 }
 
 async function serve(options) {
+  logger.spin('Starting development server...');
   let { vcm, index } = options;
   const pluginName = options.pluginName || await getPluginName();
   const isWebVcm = /^https?:\/\//.test(vcm);
@@ -175,11 +177,12 @@ async function serve(options) {
     index: 'index.html',
   });
 
+  logger.stopSpinner();
   server.listen(options.port, '0.0.0.0', (err) => {
     if (err) {
-      console.error(err);
+      logger.error(err);
     } else {
-      console.log('Your application is running');
+      logger.success('Your application is running');
     }
   });
 

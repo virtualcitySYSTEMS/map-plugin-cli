@@ -1,20 +1,22 @@
 const webpack = require('webpack');
+const { logger } = require('@vcsuite/cli-logger');
 const { getPluginName } = require('./packageJsonHelpers');
 const { getProdWebpackConfig } = require('./getWebpackConfig');
 
 async function build(options) {
   function webpackHandler(err, stats) {
     if (err) {
-      console.error(err);
+      logger.error(err);
     } else if (stats.hasErrors()) {
-      console.error(stats.compilation.errors);
+      logger.error(stats.compilation.errors);
     } else {
-      console.log(`built ${options.pluginName}`); // XXX replace with spinner for watch
+      logger.success(`built ${options.pluginName}`);
     }
+    logger.stopSpinner();
   }
 
   options.pluginName = options.pluginName || await getPluginName();
-  console.log(`compiling ${options.pluginName}`);
+  logger.spin(`compiling ${options.pluginName}`);
   options.mode = options.development ? 'development' : 'production';
 
   const config = await getProdWebpackConfig(options);

@@ -4,6 +4,7 @@ const prompts = require('prompts');
 const semver = require('semver');
 const util = require('util');
 const childProcess = require('child_process');
+const { logger } = require('@vcsuite/cli-logger');
 const { version } = require('../package.json');
 
 /**
@@ -23,19 +24,19 @@ const { version } = require('../package.json');
  */
 async function createPluginTemplate(options) {
   if (!options.name) {
-    console.error('please provide a plugin name as input parameter');
+    logger.error('please provide a plugin name as input parameter');
     process.exit(1);
   }
-  console.log(`creating new plugin: ${options.name}`);
+  logger.info(`creating new plugin: ${options.name}`);
 
   const pluginPath = path.join(process.cwd(), options.name);
   if (fs.existsSync(pluginPath)) {
-    console.error('plugin with the provided name already exists');
+    logger.error('plugin with the provided name already exists');
     process.exit(1);
   }
 
   await fs.promises.mkdir(pluginPath);
-  console.log('created plugin directory');
+  logger.debug('created plugin directory');
 
   const packageJson = {
     name: options.name,
@@ -76,7 +77,7 @@ async function createPluginTemplate(options) {
   );
 
   await fs.promises.mkdir(path.join(pluginPath, 'src'));
-  console.log('created src directory');
+  logger.debug('created src directory');
 
   const writeIndexPromise = fs.promises.writeFile(
     path.join(pluginPath, 'src', 'index.js'),
@@ -93,15 +94,19 @@ async function createPluginTemplate(options) {
 
   await Promise.all([writePackagePromise, writeConfigPromise, writeReadmePromise, writeIndexPromise]);
 
-  console.log('installing dependencies...');
+  logger.spin('installing dependencies...');
   const exec = util.promisify(childProcess.exec);
   try {
     const { stdout, stderr } = await exec('npm i', { cwd: pluginPath });
-    console.log(stdout);
-    console.error(stderr);
+    logger.log(stdout);
+    logger.error(stderr);
+    logger.success('installed dependencies');
   } catch (e) {
-    console.error(e);
+    logger.error(e);
+    logger.failure('installed dependencies');
   }
+  logger.stopSpinner();
+  logger.success('created plugin');
 }
 
 /**

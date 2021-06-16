@@ -3,6 +3,7 @@ const fs = require('fs');
 const webpack = require('webpack');
 const vinylFs = require('vinyl-fs');
 const archiver = require('archiver');
+const { logger } = require('@vcsuite/cli-logger');
 const { getProdWebpackConfig } = require('./getWebpackConfig');
 const { getPluginName } = require('./packageJsonHelpers');
 const { resolveContext, getContext } = require('./context');
@@ -80,7 +81,7 @@ function zip(name) {
     });
 
     archive.on('warning', (err) => {
-      console.error(err);
+      logger.error(err);
     });
 
     archive.pipe(zipStream);
@@ -113,13 +114,13 @@ function compile(options) {
       return new Promise((resolve, reject) => {
         webpack(webpackConfig, (err, stats) => {
           if (err) {
-            console.error(err);
+            logger.error(err);
             reject(err);
           } else if (stats.hasErrors()) {
-            console.log(stats.compilation.errors);
+            logger.log(stats.compilation.errors);
             reject(stats.compilation.errors[0].Error);
           } else {
-            console.log(`build ${options.pluginName}`);
+            logger.success(`build ${options.pluginName}`);
             resolve();
           }
         });
@@ -133,14 +134,15 @@ function compile(options) {
  */
 async function pack(options) {
   options.pluginName = options.pluginName || await getPluginName();
-  console.log(`building plugin: ${options.pluginName}`);
+  logger.spin(`building plugin: ${options.pluginName}`);
   await compile(options);
   await replaceAssets(options.pluginName);
-  console.log('fixed asset paths');
+  logger.debug('fixed asset paths');
   await ensureConfigJson();
-  console.log('ensuring config.json');
+  logger.debug('ensuring config.json');
   await zip(options.pluginName);
-  console.log('build finished');
+  logger.stopSpinner();
+  logger.success('build finished');
 }
 
 module.exports = pack;
