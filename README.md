@@ -1,5 +1,5 @@
-# VCM Plugin CLI
-This helper package helps develop and build plugins for the **VC MAP**.
+# @vcmplugin/plugin-cli
+The `vcmplugin` cli helps develop and build plugins for the **vcMAP**.
 
 For more information on plugin development refer to [map plugin examples](https://github.com/virtualcitySYSTEMS/map-plugin-examples),
 which provides documentations and a tutorial on plugin development.
@@ -17,12 +17,12 @@ You need [nodejs](https://nodejs.org/en/) and npm installed on your system to us
 ## Installation
 To install in your project:
 ```shell
-npm i -D vcmplugin-cli
+npm i -D @vcmap/plugin-cli
 ```
 
 To install globally:
 ```shell
-npm i -g vcmplugin-cli
+npm i -g @vcmap/plugin-cli
 ```
 
 ## Usage
