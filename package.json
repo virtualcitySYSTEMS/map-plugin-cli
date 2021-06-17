@@ -1,5 +1,5 @@
 {
-  "name": "vcmplugin-cli",
+  "name": "@vcmap/plugin-cli",
   "version": "1.0.0",
   "description": "A CLI to help develop and build plugins for the virtualcityMAP",
   "main": "index.js",
@@ -13,7 +13,11 @@
   "author": "Ben Kuster <bkuster@virtualcitysystems.de>",
   "license": "MIT",
   "files": [
-    "src/"
+    "src/",
+    "cli.js",
+    "README.md",
+    "index.js",
+    "LICENSE.md"
   ],
   "dependencies": {
     "@babel/core": "^7.10.2",
