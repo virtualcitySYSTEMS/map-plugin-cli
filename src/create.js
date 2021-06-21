@@ -5,7 +5,7 @@ const semver = require('semver');
 const util = require('util');
 const childProcess = require('child_process');
 const { logger } = require('@vcsuite/cli-logger');
-const { version } = require('../package.json');
+const { version, name } = require('../package.json');
 
 /**
  * @typedef {Object} PluginTemplateOptions
@@ -50,7 +50,7 @@ async function createPluginTemplate(options) {
       vcm: options.mapVersion,
     },
     dependencies: {},
-    devDependencies: options.addDevDep ? { 'vcmplugin-cli': `^${version}` } : {},
+    devDependencies: options.addDevDep ? { [name]: `^${version}` } : {},
   };
 
   const writePackagePromise = fs.promises.writeFile(
