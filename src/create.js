@@ -124,7 +124,16 @@ async function create() {
       type: 'text',
       name: 'name',
       message: 'Name',
-      validate: value => !!value,
+      validate: (value) => {
+        if (!value) {
+          return false;
+        }
+
+        if (fs.existsSync(path.join(process.cwd(), value))) {
+          return `Directory ${value} already exists`;
+        }
+        return true;
+      },
     },
     {
       type: 'text',
