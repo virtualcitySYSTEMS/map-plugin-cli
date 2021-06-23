@@ -81,7 +81,7 @@ the `package.json` and use `npm run` to execute:
     "serve": "vcmplugin serve --vcm ./vcm"
   },
   "devDependencies": {
-    "vcmplugin-cli": "^0.1.1"
+    "@vcmap/plugin-cli": "^0.1.1"
   }
 }
 ```
