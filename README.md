@@ -1,5 +1,5 @@
-# @vcmplugin/plugin-cli
-The `vcmplugin` cli helps develop and build plugins for the **vcMAP**.
+# @vcmap/plugin-cli
+The `vcmplugin` cli helps develop and build plugins for the **VC MAP**.
 
 For more information on plugin development refer to [map plugin examples](https://github.com/virtualcitySYSTEMS/map-plugin-examples),
 which provides documentations and a tutorial on plugin development.
@@ -33,7 +33,7 @@ To create a new plugin template, run the following within your projects root:
 ```
 vcmplugin create
 ```
-This will open a command prompt helping you to create the basic [structure of a plugin](https://github.com/virtualcitySYSTEMS/map-plugin-examples/doc/VCM_Plugin.md#2-structure-of-a-plugin).
+This will open a command prompt helping you to create the basic [structure of a plugin](https://github.com/virtualcitySYSTEMS/map-plugin-examples/blob/main/doc/VCM_Plugin.md#2-structure-of-a-plugin).
 
 
 ### 2. Serving a plugin for development
