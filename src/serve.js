@@ -125,6 +125,7 @@ async function serve(options) {
           target: vcm,
           changeOrigin: true,
           auth: options.auth,
+          followRedirects: true,
         };
       });
   }
