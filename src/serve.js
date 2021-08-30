@@ -109,6 +109,7 @@ function getConfigJson(vcm, name, { auth, config: configFile }) {
 
 async function serve(options) {
   logger.spin('Starting development server...');
+  // eslint-disable-next-line prefer-const
   let { vcm, index } = options;
   const pluginName = options.pluginName || await getPluginName();
   const isWebVcm = /^https?:\/\//.test(vcm);

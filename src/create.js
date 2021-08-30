@@ -6,6 +6,7 @@ const util = require('util');
 const childProcess = require('child_process');
 const { logger } = require('@vcsuite/cli-logger');
 const { version, name } = require('../package.json');
+const { LicenseType, writeLicense } = require('./licenses');
 
 /**
  * @typedef {Object} PluginTemplateOptions
@@ -92,7 +93,13 @@ async function createPluginTemplate(options) {
       '};'].join('\n'),
   );
 
-  await Promise.all([writePackagePromise, writeConfigPromise, writeReadmePromise, writeIndexPromise]);
+  await Promise.all([
+    writePackagePromise,
+    writeConfigPromise,
+    writeReadmePromise,
+    writeIndexPromise,
+    writeLicense(options.author, options.license, pluginPath),
+  ]);
 
   logger.spin('installing dependencies...');
   const exec = util.promisify(childProcess.exec);
@@ -162,10 +169,15 @@ async function create() {
       initial: 'author <email>',
     },
     {
-      type: 'text',
+      type: 'select',
       name: 'license',
       message: 'License',
-      initial: 'ISC',
+      initial: 0,
+      choices: Object.values(LicenseType)
+        .map(type => ({
+          title: type,
+          value: type,
+        })),
     },
     {
       type: 'text',
