@@ -8,12 +8,12 @@ program.version(version);
 
 program
   .command('create')
-  .action(create);
+  .safeAction(create);
 
 program
   .command('pack')
   .defaultBuildOptions()
-  .action(pack);
+  .safeAction(pack);
 
 program
   .command('serve')
@@ -30,13 +30,13 @@ program
     prev.push(val);
     return prev;
   }, [])
-  .action(serve);
+  .safeAction(serve);
 
 program
   .command('build')
   .defaultBuildOptions()
   .option('--development', 'set mode to development')
   .option('--watch', 'watch file changes')
-  .action(build);
+  .safeAction(build);
 
 program.parse(process.argv);

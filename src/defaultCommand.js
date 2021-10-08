@@ -1,4 +1,5 @@
 const { Command } = require('commander');
+const { logger } = require('@vcsuite/cli-logger');
 const { setContext } = require('./context');
 
 Command.prototype.defaultOptions = function defaultOptions() {
@@ -21,4 +22,15 @@ Command.prototype.defaultBuildOptions = function defaultBuildOptions() {
     .option('--library-target [target]', 'library target', 'commonjs2');
 
   return this;
+};
+
+Command.prototype.safeAction = function safeAction(action) {
+  this.action(async (options) => {
+    try {
+      await action(options);
+    } catch (e) {
+      logger.stopSpinner();
+      process.exit(1);
+    }
+  });
 };
