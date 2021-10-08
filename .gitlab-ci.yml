@@ -11,7 +11,7 @@ stages:
 
 .template: &job_definition
   only:
-    - /^(feature-.*|hotfix-.*|main)$/
+    - /^(feature-.*|hotfix-.*|main|release-.*)$/
   tags:
     - linux-2.0
 
@@ -33,11 +33,12 @@ lint:
   script:
     - npm run lint
 
-audit:
-  <<: *after_build_definition
-  stage: test
-  script:
-    - npm audit --production --audit-level=low
+# re-introduce audit in 2.0 with vite. this would require migrating webpack-dev-server
+#audit:
+#  <<: *after_build_definition
+#  stage: test
+#  script:
+#    - npm audit --production --audit-level=low
 
 publish:
   <<: *after_build_definition
@@ -46,7 +47,7 @@ publish:
     variables:
       - $PUBLISH
     refs:
-      - main
+      - /^(master|release-v.*)$/
   script:
     - npm version patch -m "%s [skip-ci]"
     - TAG=`git describe --abbrev=0`
