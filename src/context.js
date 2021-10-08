@@ -6,7 +6,7 @@ function setContext(c) {
   if (context) {
     throw new Error('cannot set context twice');
   }
-  context = c;
+  context = path.resolve(c);
 }
 
 function getContext() {
