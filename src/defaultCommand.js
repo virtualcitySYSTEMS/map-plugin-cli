@@ -29,6 +29,9 @@ Command.prototype.safeAction = function safeAction(action) {
     try {
       await action(options);
     } catch (e) {
+      if (e) {
+        logger.error(e);
+      }
       logger.stopSpinner();
       process.exit(1);
     }
