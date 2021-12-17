@@ -1,6 +1,6 @@
 {
   "name": "@vcmap/plugin-cli",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A CLI to help develop and build plugins for the virtualcityMAP",
   "main": "index.js",
   "bin": {
