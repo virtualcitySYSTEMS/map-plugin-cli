@@ -47,7 +47,7 @@ publish:
     variables:
       - $PUBLISH
     refs:
-      - /^(master|release-v.*)$/
+      - /^(main|release-v.*)$/
   script:
     - npm version patch -m "%s [skip-ci]"
     - TAG=`git describe --abbrev=0`
