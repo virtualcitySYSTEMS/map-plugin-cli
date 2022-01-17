@@ -134,6 +134,7 @@ async function serve(options) {
   const server = new WebpackDevServer(webpack(webpackConfig), {
     hot: true,
     hotOnly: true,
+    https: true,
     open: false,
     injectClient: false,
     publicPath: '/_dist',
