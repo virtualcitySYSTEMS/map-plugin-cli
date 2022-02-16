@@ -23,6 +23,7 @@ program
   .option('--index [index.html]', 'the filename of the index.html to download. only used if vcm is a hosted application', 'index.html')
   .option('--auth <user:password>', 'an optional auth to append to proxy requests')
   .option('-c, --config <config>', 'a config override to not use the default plugin config')
+  .option('--https', 'use https for serving')
   .option('--proxyRoute <route>', 'a route to proxy as well (e.g. if you have additional proxies on your server)', (val, prev) => {
     if (!prev) {
       return [val];
