@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 /**
  * @param {string} user
@@ -97,7 +97,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /**
  * @enum {string}
  */
-const LicenseType = {
+export const LicenseType = {
   MIT: 'MIT',
   ISC: 'ISC',
   'APACHE-2.0': 'APACHE-2.0',
@@ -120,14 +120,9 @@ const LicenseTypeFunctions = {
  * @param {string} pluginPath
  * @returns {Promise<void>}
  */
-function writeLicense(user, type, pluginPath) {
+export function writeLicense(user, type, pluginPath) {
   const year = new Date().getFullYear();
   const text = LicenseTypeFunctions[type](user, year);
 
   return fs.promises.writeFile(path.join(pluginPath, 'LICENSE.md'), text);
 }
-
-module.exports = {
-  writeLicense,
-  LicenseType,
-};

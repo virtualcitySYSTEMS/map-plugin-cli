@@ -1,29 +1,26 @@
 #!/usr/bin/env node
-const program = require('commander');
-require('./src/defaultCommand');
-const { version } = require('./package.json');
-const { create, serve, build, pack } = require('./index');
+import program from 'commander';
+import './src/defaultCommand.js';
+import { create, serve, build, pack, preview } from './index.js';
+import { version } from './src/create.js';
 
 program.version(version);
 
 program
   .command('create')
+  .defaultOptions()
   .safeAction(create);
 
 program
   .command('pack')
-  .defaultBuildOptions()
+  .defaultOptions()
   .safeAction(pack);
 
 program
-  .command('serve')
+  .command('preview')
   .defaultOptions()
-  .option('-p, --port [port]', 'the port to listen on', /\d+/, '8080')
-  .option('--vcm [dir]', 'the directory path or URL to a virtualcityMAP application', './vcm')
-  .option('--index [index.html]', 'the filename of the index.html to download. only used if vcm is a hosted application', 'index.html')
-  .option('--auth <user:password>', 'an optional auth to append to proxy requests')
-  .option('-c, --config <config>', 'a config override to not use the default plugin config')
-  .option('--https', 'use https for serving')
+  .defaultServeOptions()
+  .option('--vcm [url]', 'URL to a virtualcityMAP application', val => val.replace(/\/$/, ''))
   .option('--proxyRoute <route>', 'a route to proxy as well (e.g. if you have additional proxies on your server)', (val, prev) => {
     if (!prev) {
       return [val];
@@ -31,11 +28,18 @@ program
     prev.push(val);
     return prev;
   }, [])
+  .safeAction(preview);
+
+program
+  .command('serve')
+  .defaultOptions()
+  .defaultServeOptions()
+  .option('--mapConfig [config]', 'an optional map config (either file or URL) to use')
   .safeAction(serve);
 
 program
   .command('build')
-  .defaultBuildOptions()
+  .defaultOptions()
   .option('--development', 'set mode to development')
   .option('--watch', 'watch file changes')
   .safeAction(build);

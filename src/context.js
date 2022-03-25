@@ -1,9 +1,9 @@
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
 let context = null;
 
-function setContext(c) {
+export function setContext(c) {
   if (context) {
     throw new Error('cannot set context twice');
   }
@@ -13,17 +13,10 @@ function setContext(c) {
   context = path.resolve(c);
 }
 
-function getContext() {
+export function getContext() {
   return context || process.cwd();
 }
 
-function resolveContext(...dir) {
+export function resolveContext(...dir) {
   return path.join(getContext(), ...dir);
 }
-
-
-module.exports = {
-  getContext,
-  resolveContext,
-  setContext,
-};

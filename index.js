@@ -1,12 +1,5 @@
-const create = require('./src/create');
-const serve = require('./src/serve');
-const build = require('./src/build');
-const pack = require('./src/pack');
-
-
-module.exports = {
-  create,
-  serve,
-  build,
-  pack,
-};
+export { default as create } from './src/create.js';
+export { default as serve } from './src/serve.js';
+export { default as build } from './src/build.js';
+export { default as pack } from './src/pack.js';
+export { default as preview } from './src/preview.js';

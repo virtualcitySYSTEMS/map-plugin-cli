@@ -1,12 +1,11 @@
-const { Transform } = require('stream');
-const fs = require('fs');
-const webpack = require('webpack');
-const vinylFs = require('vinyl-fs');
-const archiver = require('archiver');
-const { logger } = require('@vcsuite/cli-logger');
-const { getProdWebpackConfig } = require('./getWebpackConfig');
-const { getPluginName } = require('./packageJsonHelpers');
-const { resolveContext, getContext } = require('./context');
+import { Transform } from 'stream';
+import fs from 'fs';
+import vinylFs from 'vinyl-fs';
+import archiver from 'archiver';
+import { logger } from '@vcsuite/cli-logger';
+import { getPluginName } from './packageJsonHelpers.js';
+import { resolveContext, getContext } from './context.js';
+import build from './build.js';
 
 /**
  * @param {string} name
@@ -17,7 +16,7 @@ function replaceAssets(name) {
     objectMode: true,
     transform(data, encoding, callback) {
       data.contents = Buffer.from(String(data.contents)
-        .replace(/\.?\/?(assets|img|fonts|media)\//g, `plugins/${name}/$1/`));
+        .replace(/\.?\/?(plugin-assets)\//g, `plugins/${name}/$1/`));
 
       callback(null, data);
     },
@@ -69,7 +68,7 @@ async function ensureConfigJson() {
  */
 function zip(name) {
   return new Promise((resolve, reject) => {
-    const zipStream = fs.createWriteStream(resolveContext('dist', `${name}.zip`));
+    const zipStream = fs.createWriteStream(resolveContext('dist', `${name.replace(/\//, '-')}.zip`));
     const archive = archiver('zip', { zlib: { level: 5 } });
 
     zipStream.on('close', () => {
@@ -88,61 +87,38 @@ function zip(name) {
     [
       ['package.json'],
       ['README.md'],
-      ['dist', 'config.json'],
-      ['dist', `${name}.js`],
+      ['config.json'],
+      ['dist', 'index.js'],
+      ['dist', 'style.css'],
     ].forEach((fileArray) => {
-      archive.file(resolveContext(...fileArray), { name: `${name}/${fileArray.pop()}` });
-    });
-
-    ['assets', 'img'].forEach((dir) => {
-      if (fs.existsSync(resolveContext(dir))) {
-        archive.directory(resolveContext(dir), `${name}/${dir}`);
+      const file = resolveContext(...fileArray);
+      if (fs.existsSync(file)) {
+        archive.file(file, { name: `${name}/${fileArray.pop()}` });
       }
     });
 
-    archive.finalize();
+    if (fs.existsSync(resolveContext('plugin-assets'))) {
+      archive.directory(resolveContext('plugin-assets'), `${name}/plugin-assets`);
+    }
+
+    archive.finalize().then(() => {
+      resolve();
+    });
   });
 }
 
 /**
- * @param {ProdOptions} options
  * @returns {Promise<void>}
  */
-function compile(options) {
-  return getProdWebpackConfig(options)
-    .then((webpackConfig) => {
-      return new Promise((resolve, reject) => {
-        webpack(webpackConfig, (err, stats) => {
-          if (err) {
-            logger.error(err);
-            reject(err);
-          } else if (stats.hasErrors()) {
-            logger.log(stats.compilation.errors);
-            reject(stats.compilation.errors[0].Error);
-          } else {
-            logger.success(`build ${options.pluginName}`);
-            resolve();
-          }
-        });
-      });
-    });
-}
-
-/**
- * @param {ProdOptions} options
- * @returns {Promise<void>}
- */
-async function pack(options) {
-  options.pluginName = options.pluginName || await getPluginName();
-  logger.spin(`building plugin: ${options.pluginName}`);
-  await compile(options);
-  await replaceAssets(options.pluginName);
+export default async function pack() {
+  const pluginName = await getPluginName();
+  logger.spin(`building plugin: ${pluginName}`);
+  await build({});
+  await replaceAssets(pluginName);
   logger.debug('fixed asset paths');
   await ensureConfigJson();
   logger.debug('ensuring config.json');
-  await zip(options.pluginName);
+  await zip(pluginName);
   logger.stopSpinner();
   logger.success('build finished');
 }
-
-module.exports = pack;

@@ -1,8 +1,9 @@
 {
   "name": "@vcmap/plugin-cli",
   "version": "1.1.1",
-  "description": "A CLI to help develop and build plugins for the virtualcityMAP",
+  "description": "A CLI to help develop and build plugins for the VC Map",
   "main": "index.js",
+  "type": "module",
   "bin": {
     "vcmplugin": "cli.js"
   },
@@ -13,6 +14,7 @@
   "author": "Ben Kuster <bkuster@virtualcitysystems.de>",
   "license": "MIT",
   "files": [
+    "assets/",
     "src/",
     "cli.js",
     "README.md",
@@ -20,35 +22,35 @@
     "LICENSE.md"
   ],
   "dependencies": {
-    "@babel/core": "^7.10.2",
-    "@babel/runtime": "^7.13.10",
+    "@vcmap/rollup-plugin-vcs-ol": "^1.0.1",
     "@vcsuite/cli-logger": "^1.0.0",
-    "@vue/babel-preset-app": "^4.5.4",
     "archiver": "^5.0.0",
-    "autoprefixer": "^9.8.6",
-    "babel-loader": "^8.1.0",
     "commander": "^6.0.0",
-    "css-loader": "^3.6.0",
-    "postcss-loader": "^3.0.0",
+    "express": "^4.17.3",
     "prompts": "^2.4.1",
+    "sass": "1.32.13",
     "semver": "^7.3.5",
-    "terser-webpack-plugin": "^5.1.1",
-    "url-loader": "^4.1.0",
+    "unplugin-vue-components": "^0.17.21",
     "vinyl-fs": "^3.0.3",
-    "vue": "^2.6.12",
-    "vue-loader": "^15.9.6",
-    "vue-template-compiler": "^2.6.12",
-    "webpack": "^5.36.2",
-    "webpack-dev-server": "^3.11.2"
+    "vite": "^2.4.4",
+    "vite-plugin-vue2": "^1.7.3",
+    "vue-template-compiler": "^2.6.14"
   },
   "devDependencies": {
-    "@vcsuite/eslint-config": "^1.0.0",
-    "eslint": "^7.25.0"
+    "@vcsuite/eslint-config": "^2.1.1",
+    "eslint": "^8.9.0"
   },
   "eslintIgnore": [
     "node_modules"
   ],
   "eslintConfig": {
-    "extends": "@vcsuite/eslint-config/node"
+    "extends": "@vcsuite/eslint-config/node",
+    "parserOptions": {
+      "ecmaVersion": 2020
+    }
+  },
+  "engines": {
+    "node": "^16.14.0",
+    "npm": "^8.3.0"
   }
 }

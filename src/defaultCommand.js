@@ -1,25 +1,23 @@
-const { Command } = require('commander');
-const { logger } = require('@vcsuite/cli-logger');
-const { setContext } = require('./context');
+import { Command } from 'commander';
+import { logger } from '@vcsuite/cli-logger';
+import { setContext } from './context.js';
 
 Command.prototype.defaultOptions = function defaultOptions() {
   this
-    .option('-n, --plugin-name [name]', 'a name override to use. extracts the name from the package.json by default')
     .option('--context [path]', 'an optional context, default is cwd', (value) => {
       setContext(value);
       return value;
-    })
-    .option('--no-condense-whitespace', 'do not condense white space')
-    .option('-e, --entry <entry>', 'entrypoint override');
+    });
 
   return this;
 };
 
-Command.prototype.defaultBuildOptions = function defaultBuildOptions() {
+Command.prototype.defaultServeOptions = function defaultServeOptions() {
   this
-    .defaultOptions()
-    .option('-l, --library [name]', 'whether to create a library with [name] or not')
-    .option('--library-target [target]', 'library target', 'commonjs2');
+    .option('-p, --port [port]', 'the port to listen on', /\d+/)
+    .option('--auth <user:password>', 'an optional auth to append to proxy requests')
+    .option('-c, --config <config>', 'a config override to not use the default plugin config')
+    .option('--https', 'use https for serving');
 
   return this;
 };
