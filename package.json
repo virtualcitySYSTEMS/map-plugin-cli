@@ -40,6 +40,14 @@
     "vite-plugin-vue2": "^1.7.3",
     "vue-template-compiler": "^2.6.14"
   },
+  "peerDependencies": {
+    "@vcmap/ui": "^5.0.0-rc.4"
+  },
+  "peerDependenciesMeta": {
+    "@vcmap/ui": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@vcsuite/eslint-config": "^2.1.1",
     "eslint": "^8.9.0"
