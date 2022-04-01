@@ -73,7 +73,7 @@ export default async function preview(options) {
     await printVcmapUiVersion();
   }
   checkReservedDirectories();
-  build({ development: false, watch: true }, true);
+  await build({ development: false, watch: true });
   const app = express();
   logger.info('Starting preview server...');
   const server = await createServer(await getServerOptions(options.vcm, options.https));
