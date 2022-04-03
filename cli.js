@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import program from 'commander';
+import { logger } from '@vcsuite/cli-logger';
 import './src/defaultCommand.js';
 import { create, serve, build, pack, preview } from './index.js';
 import { version } from './src/create.js';
+import { executeUiNpm } from './src/hostingHelpers.js';
 
 program.version(version);
 
@@ -43,5 +45,14 @@ program
   .option('--development', 'set mode to development')
   .option('--watch', 'watch file changes')
   .safeAction(build);
+
+program
+  .command('setup-map-ui')
+  .safeAction(async () => {
+    logger.spin('installing dev plugins in @vcmap/ui');
+    await executeUiNpm('install-plugins');
+    logger.stopSpinner();
+    logger.info('dev plugins installed');
+  });
 
 program.parse(process.argv);

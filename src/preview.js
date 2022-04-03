@@ -2,14 +2,16 @@ import path from 'path';
 import { createServer } from 'vite';
 import express from 'express';
 import { logger } from '@vcsuite/cli-logger';
+import { buildPluginsForPreview } from '@vcmap/ui/build/buildHelpers.js';
 import {
+  addConfigRoute,
   addIndexRoute,
   addMapConfigRoute,
   checkReservedDirectories,
   createConfigJsonReloadPlugin,
   printVcmapUiVersion,
 } from './hostingHelpers.js';
-import build, { getLibraryPaths } from './build.js';
+import build, { getDefaultConfig, getLibraryPaths } from './build.js';
 import { getContext } from './context.js';
 
 /**
@@ -82,8 +84,13 @@ export default async function preview(options) {
   addIndexRoute(app, server, true, options.vcm, options.auth);
 
   if (!options.vcm) {
+    logger.spin('compiling preview');
+    await buildPluginsForPreview(getDefaultConfig(), true);
+    logger.stopSpinner();
+    logger.info('@vcmap/ui built for preview');
     app.use('/assets', express.static(path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'assets')));
-    app.use('/plugins', express.static(path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'plugins')));
+    app.use('/plugins', express.static(path.join(getContext(), 'dist', 'plugins')));
+    await addConfigRoute(app, options.auth, options.config, true);
   }
 
   app.use(server.middlewares);

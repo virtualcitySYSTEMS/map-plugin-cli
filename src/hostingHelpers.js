@@ -1,4 +1,6 @@
 import { fileURLToPath, URL } from 'url';
+import { promisify } from 'util';
+import { exec } from 'child_process';
 import https from 'https';
 import http from 'http';
 import fs from 'fs';
@@ -15,8 +17,21 @@ import { getPluginEntry, getPluginName } from './packageJsonHelpers.js';
  * @property {boolean} [https]
  */
 
+/**
+ * @type {(arg1: string, opt?: Object) => Promise<string>}
+ */
+const promiseExec = promisify(exec);
+
+/**
+ * @param {...string} pathSegments
+ * @returns {string}
+ */
+export function resolveMapUi(...pathSegments) {
+  return path.join(getContext(), 'node_modules', '@vcmap', 'ui', ...pathSegments);
+}
+
 export function checkReservedDirectories() {
-  ['assets', 'plugins']
+  ['assets', 'plugins', 'config']
     .forEach((dir) => {
       if (fs.existsSync(path.join(getContext(), dir))) {
         logger.warning(`found reserved directory ${dir}. serving my not work as exptected`);
@@ -69,13 +84,13 @@ export async function readConfigJson(fileName) {
   return config;
 }
 
-let configJson = null;
+const configMap = new Map();
 
 /**
  * @returns {Promise<string>}
  */
 export async function printVcmapUiVersion() {
-  const packageJsonPath = path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'package.json');
+  const packageJsonPath = resolveMapUi('package.json');
   if (!fs.existsSync(packageJsonPath)) {
     throw new Error(`Cannot find the @vcmap/ui package in ${getContext()}. Are you sure you installed it?`);
   }
@@ -86,6 +101,24 @@ export async function printVcmapUiVersion() {
 }
 
 /**
+ * @param {Object} config
+ * @param {Object} pluginConfig
+ * @param {boolean} production
+ * @returns {Promise<void>}
+ */
+export async function reWriteConfig(config, pluginConfig, production) {
+  config.plugins = config.plugins ?? []; // XXX check if we have plugins in this repos dependencies?
+  pluginConfig.entry = production ? 'dist/index.js' : await getPluginEntry();
+  pluginConfig.name = await getPluginName();
+  const idx = config.plugins.findIndex(p => p.name === pluginConfig.name);
+  if (idx > -1) {
+    config.plugins.splice(idx, 1, pluginConfig);
+  } else {
+    config.plugins.push(pluginConfig);
+  }
+}
+
+/**
  * @param {string} [mapConfig] - fs or https to config. defaults to @vcmap/ui/map.config.json
  * @param {string} [auth]
  * @param {boolean} [production]
@@ -93,9 +126,9 @@ export async function printVcmapUiVersion() {
  * @returns {Promise<unknown>}
  */
 export function getConfigJson(mapConfig, auth, production, configFile) {
-  const usedConfig = mapConfig || path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'config', 'base.config.json');
-  if (configJson) {
-    return Promise.resolve(configJson);
+  const usedConfig = mapConfig || resolveMapUi('map.config.json');
+  if (configMap.has('map.config.json')) {
+    return Promise.resolve(configMap.get('map.config.json'));
   }
   const isWebVcm = /^https?:\/\//.test(usedConfig);
   return new Promise((resolve, reject) => {
@@ -107,17 +140,10 @@ export function getConfigJson(mapConfig, auth, production, configFile) {
 
       stream.on('close', async () => {
         try {
-          configJson = JSON.parse(data);
-          configJson.plugins = production && configJson.plugins ? configJson.plugins : [];
+          const configJson = JSON.parse(data);
+          configMap.set('map.config.json', configJson);
           const pluginConfig = await readConfigJson(configFile);
-          pluginConfig.entry = production ? 'dist/index.js' : await getPluginEntry();
-          pluginConfig.name = await getPluginName();
-          const idx = configJson.plugins.findIndex(p => p.name === pluginConfig.name);
-          if (idx > -1) {
-            configJson.plugins.splice(idx, 1, pluginConfig);
-          } else {
-            configJson.plugins.push(pluginConfig);
-          }
+          await reWriteConfig(configJson, pluginConfig, production);
           resolve(configJson);
         } catch (e) {
           reject(e);
@@ -167,7 +193,7 @@ export function createConfigJsonReloadPlugin() {
     name: 'ConfigJsonReload',
     handleHotUpdate({ file }) {
       if (file === path.join(getContext(), 'config.json')) {
-        configJson = null;
+        configMap.clear();
       }
     },
   };
@@ -193,12 +219,51 @@ export function addMapConfigRoute(app, mapConfig, auth, configFile, production) 
 }
 
 /**
+ * @param {Express} app
+ * @param {string} [auth]
+ * @param {string} [configFileName]
+ * @param {boolean} [production]
+ */
+export async function addConfigRoute(app, auth, configFileName, production) {
+  const mapUiDir = resolveMapUi();
+  const pluginConfig = await readConfigJson(configFileName);
+
+  app.get('/config*', async (req, res) => {
+    const { url } = req;
+    const fileName = path.join(mapUiDir, ...url.substring(1).split('/'));
+    let response;
+    if (configMap.has(url)) {
+      response = JSON.stringify(configMap.get(url));
+    } else if (fs.existsSync(fileName)) {
+      try {
+        const configContent = await fs.promises.readFile(fileName);
+        const config = JSON.parse(configContent);
+        configMap.set(url, config);
+        await reWriteConfig(config, pluginConfig, production);
+        response = JSON.stringify(config);
+      } catch (e) {
+        configMap.delete(url);
+        logger.warning(`Failed to parse config ${url}`);
+      }
+    }
+
+    if (!response) {
+      res.statusCode = 404;
+    } else {
+      res.setHeader('Content-Type', 'application/json');
+      res.write(response);
+    }
+    res.end();
+  });
+}
+
+/**
  * @param {boolean} [production]
  * @returns {Promise<string>}
  */
 export async function getMapUiIndexHtml(production) {
   const indexHtmlFileName = production ?
-    path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'index.html') :
+    resolveMapUi('dist', 'index.html') :
     path.join(getDirname(), '..', 'assets', 'index.html');
   const buffer = await fs.promises.readFile(indexHtmlFileName);
   return buffer.toString();
@@ -224,3 +289,11 @@ export function addIndexRoute(app, server, production, hostedVcm, auth) {
   });
 }
 
+/**
+ * @param {string} command
+ * @returns {Promise<string>}
+ */
+export function executeUiNpm(command) {
+  const mapUiDir = resolveMapUi();
+  return promiseExec(`npm run ${command}`, { cwd: mapUiDir });
+}

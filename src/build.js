@@ -15,19 +15,37 @@ import { getContext } from './context.js';
  * @property {boolean} [watch]
  */
 
+export function getDefaultConfig() {
+  return {
+    publicDir: false,
+    plugins: [
+      createVuePlugin(),
+      Components({
+        resolvers: [
+          VuetifyResolver(),
+        ],
+        dirs: ['./src'],
+        include: [],
+        exclude: [],
+      }),
+      vcsOl(),
+    ],
+  };
+}
+
 /**
  * @param {string} pluginName
  * @returns {Object<string, string>}
  */
 export function getLibraryPaths(pluginName) {
   const pluginPath = path.join('plugins', ...pluginName.split('/'));
-
+  const libraryPaths = {};
   Object.entries(libraries).forEach(([library, { lib: assetName }]) => {
     const assetPath = path.join('assets', `${assetName}.js`);
 
-    libraries[library] = path.relative(pluginPath, assetPath);
+    libraryPaths[library] = path.relative(pluginPath, assetPath);
   });
-  return libraries;
+  return libraryPaths;
 }
 
 /**
@@ -46,21 +64,9 @@ export default async function buildModule(options) {
   const distPah = path.join(getContext(), 'dist');
   await fs.rm(distPah, { recursive: true, force: true });
   await fs.mkdir(distPah);
-
+  const external = Object.keys(libraryPaths);
   const config = {
-    publicDir: false,
-    plugins: [
-      createVuePlugin(),
-      Components({
-        resolvers: [
-          VuetifyResolver(),
-        ],
-        dirs: ['./src'],
-        include: [],
-        exclude: [],
-      }),
-      vcsOl(),
-    ],
+    ...getDefaultConfig(),
     esbuild: {
       minify: !options.development,
     },
@@ -73,12 +79,14 @@ export default async function buildModule(options) {
         fileName: () => 'index.js',
       },
       rollupOptions: {
-        external: Object.keys(libraryPaths),
+        external,
         output: {
           paths: libraryPaths,
         },
       },
-      watch: options.watch ? {} : null,
+      watch: options.watch ? {
+        skipWrite: true,
+      } : null,
     },
   };
   await buildLibrary(config, '', 'index', '', true);
