@@ -6,19 +6,51 @@ import { logger } from '@vcsuite/cli-logger';
 import path from 'path';
 import { VuetifyResolver } from 'unplugin-vue-components/dist/resolvers.js';
 import Components from 'unplugin-vue-components/dist/vite.js';
+import getPluginProxies from '@vcmap/ui/build/getPluginProxies.js';
+import { determineHostIpFromInterfaces } from '@vcmap/ui/build/determineHost.js';
+import { getInlinePlugins } from '@vcmap/ui/build/buildHelpers.js';
 import { getContext } from './context.js';
 import {
+  addConfigRoute,
   addIndexRoute,
   addMapConfigRoute,
   checkReservedDirectories,
   createConfigJsonReloadPlugin,
   printVcmapUiVersion,
+  resolveMapUi,
 } from './hostingHelpers.js';
+import { getPluginName } from './packageJsonHelpers.js';
 
 /**
  * @typedef {HostingOptions} ServeOptions
  * @property {string} [mapConfig] - an filename or URL to a map config
  */
+
+async function getProxy(protocol, port) {
+  const target = `${protocol}://${determineHostIpFromInterfaces()}:${port}`;
+  const proxy = await getPluginProxies(target);
+  const mapUiPlugins = resolveMapUi('plugins');
+  const inlinePlugins = await getInlinePlugins();
+  inlinePlugins.forEach((inlinePlugin) => {
+    proxy[`^/plugins/${inlinePlugin}/.*`] = {
+      target,
+      rewrite: (route) => {
+        const rest = route.replace(new RegExp(`^/plugins/${inlinePlugin}/`), '');
+        const file = rest || 'index.js';
+        return path.posix.join(path.relative(getContext(), mapUiPlugins), inlinePlugin, file);
+      },
+    };
+  });
+
+  const pluginRoutes = Object.keys(proxy);
+  const name = await getPluginName();
+  const hasThisPlugin = pluginRoutes.find(p => p.startsWith(`^/plugins/${name}`));
+
+  if (hasThisPlugin) {
+    delete proxy[hasThisPlugin];
+  }
+  return proxy;
+}
 
 /**
  * @param {ServeOptions} options
@@ -32,7 +64,10 @@ export default async function serve(options) {
   await printVcmapUiVersion();
   checkReservedDirectories();
   const app = express();
+  const port = options.port || 8008;
+
   logger.info('Starting development server...');
+  const proxy = await getProxy(options.https ? 'https' : 'http', port);
 
   const server = await createServer({
     root: getContext(),
@@ -66,15 +101,16 @@ export default async function serve(options) {
     server: {
       middlewareMode: 'html',
       https: options.https,
+      proxy,
     },
   });
 
   addMapConfigRoute(app, options.mapConfig, options.auth, options.config);
   addIndexRoute(app, server);
+  await addConfigRoute(app, options.auth, options.config);
 
   app.use(server.middlewares);
 
-  const port = options.port || 8008;
   await app.listen(port);
   logger.info(`Server running on port ${port}`);
 }

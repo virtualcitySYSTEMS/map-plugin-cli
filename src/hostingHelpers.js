@@ -224,7 +224,7 @@ export function addMapConfigRoute(app, mapConfig, auth, configFile, production) 
  * @param {string} [configFileName]
  * @param {boolean} [production]
  */
-export async function addConfigRoute(app, auth, configFileName, production) {
+export async function addConfigRoute(app, auth, configFileName, production) { // IDEA pass in available plugins and strip unavailable ones?
   const mapUiDir = resolveMapUi();
   const pluginConfig = await readConfigJson(configFileName);
 
