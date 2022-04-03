@@ -1,6 +1,10 @@
 # @vcmap/plugin-cli
 > Part of the [VC Map Project](https://github.com/virtualcitySYSTEMS/map-ui)
 
+> **Note: This documentation is for version 2, compatible with the [VC Map](https://github.com/virtualcitySYSTEMS/map-ui) v5. 
+> For documentation on version 1 compatible with VC Map v4, see [this tag](https://github.com/virtualcitySYSTEMS/map-plugin-cli/tree/v1.1.1)
+> and be sure to install using `npm i -g @vcmap/plugin-cli@^1.1.0`** 
+
 The `vcmplugin` cli helps develop and build plugins for the **VC Map**.
 
 For more information on plugin development refer to [map plugin examples](https://github.com/virtualcitySYSTEMS/map-plugin-examples),
