@@ -61,9 +61,9 @@ export default async function buildModule(options) {
 
   const pluginName = await getPluginName();
   const libraryPaths = getLibraryPaths(pluginName);
-  const distPah = path.join(getContext(), 'dist');
-  await fs.rm(distPah, { recursive: true, force: true });
-  await fs.mkdir(distPah);
+  const distPath = path.join(getContext(), 'dist');
+  await fs.rm(distPath, { recursive: true, force: true });
+  await fs.mkdir(distPath);
   const external = Object.keys(libraryPaths);
   const config = {
     ...getDefaultConfig(),
