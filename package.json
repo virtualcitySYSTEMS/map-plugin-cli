@@ -41,7 +41,7 @@
     "vue-template-compiler": "^2.6.14"
   },
   "peerDependencies": {
-    "@vcmap/ui": "^5.0.0-rc.4"
+    "@vcmap/ui": "^5.0.0-rc.5"
   },
   "peerDependenciesMeta": {
     "@vcmap/ui": {
@@ -59,6 +59,16 @@
     "extends": "@vcsuite/eslint-config/node",
     "parserOptions": {
       "ecmaVersion": 2020
+    },
+    "rules": {
+      "import/no-unresolved": [
+        2,
+        {
+          "ignore": [
+            "^@vcmap/ui"
+          ]
+        }
+      ]
     }
   },
   "engines": {
