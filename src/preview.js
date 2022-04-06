@@ -2,7 +2,6 @@ import path from 'path';
 import { createServer } from 'vite';
 import express from 'express';
 import { logger } from '@vcsuite/cli-logger';
-import { buildPluginsForPreview } from '@vcmap/ui/build/buildHelpers.js';
 import {
   addConfigRoute,
   addIndexRoute,
@@ -36,8 +35,8 @@ function setAliases(alias, libraryPaths) {
  */
 async function getServerOptions(hostedVcm, https) {
   let proxy;
-  const normalLibraries = getLibraryPaths('normal');
-  const scopedLibraries = getLibraryPaths('@scoped/plugin');
+  const normalLibraries = await getLibraryPaths('normal');
+  const scopedLibraries = await getLibraryPaths('@scoped/plugin');
   const alias = {};
   setAliases(alias, normalLibraries);
   setAliases(alias, scopedLibraries);
@@ -85,6 +84,7 @@ export default async function preview(options) {
 
   if (!options.vcm) {
     logger.spin('compiling preview');
+    const { buildPluginsForPreview } = await import('@vcmap/ui/build/buildHelpers.js');
     await buildPluginsForPreview(getDefaultConfig(), true);
     logger.stopSpinner();
     logger.info('@vcmap/ui built for preview');

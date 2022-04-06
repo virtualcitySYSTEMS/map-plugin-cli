@@ -1,6 +1,5 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { buildLibrary, libraries } from '@vcmap/ui/build/buildHelpers.js';
 import { createVuePlugin } from 'vite-plugin-vue2';
 import vcsOl from '@vcmap/rollup-plugin-vcs-ol';
 import { logger } from '@vcsuite/cli-logger';
@@ -37,7 +36,8 @@ export function getDefaultConfig() {
  * @param {string} pluginName
  * @returns {Object<string, string>}
  */
-export function getLibraryPaths(pluginName) {
+export async function getLibraryPaths(pluginName) {
+  const { libraries } = await import('@vcmap/ui/build/buildHelpers.js');
   const pluginPath = path.join('plugins', ...pluginName.split('/'));
   const libraryPaths = {};
   Object.entries(libraries).forEach(([library, { lib: assetName }]) => {
@@ -60,7 +60,7 @@ export default async function buildModule(options) {
   }
 
   const pluginName = await getPluginName();
-  const libraryPaths = getLibraryPaths(pluginName);
+  const libraryPaths = await getLibraryPaths(pluginName);
   const distPath = path.join(getContext(), 'dist');
   await fs.rm(distPath, { recursive: true, force: true });
   await fs.mkdir(distPath);
@@ -89,5 +89,6 @@ export default async function buildModule(options) {
       } : null,
     },
   };
+  const { buildLibrary } = await import('@vcmap/ui/build/buildHelpers.js');
   await buildLibrary(config, '', 'index', '', true);
 }

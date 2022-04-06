@@ -6,9 +6,6 @@ import { logger } from '@vcsuite/cli-logger';
 import path from 'path';
 import { VuetifyResolver } from 'unplugin-vue-components/dist/resolvers.js';
 import Components from 'unplugin-vue-components/dist/vite.js';
-import getPluginProxies from '@vcmap/ui/build/getPluginProxies.js';
-import { determineHostIpFromInterfaces } from '@vcmap/ui/build/determineHost.js';
-import { getInlinePlugins } from '@vcmap/ui/build/buildHelpers.js';
 import { getContext } from './context.js';
 import {
   addConfigRoute,
@@ -27,6 +24,10 @@ import { getPluginName } from './packageJsonHelpers.js';
  */
 
 async function getProxy(protocol, port) {
+  const { default: getPluginProxies } = await import('@vcmap/ui/build/getPluginProxies.js');
+  const { determineHostIpFromInterfaces } = await import('@vcmap/ui/build/determineHost.js');
+  const { getInlinePlugins } = await import('@vcmap/ui/build/buildHelpers.js');
+
   const target = `${protocol}://${determineHostIpFromInterfaces()}:${port}`;
   const proxy = await getPluginProxies(target);
   const mapUiPlugins = resolveMapUi('plugins');
