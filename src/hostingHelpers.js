@@ -282,7 +282,8 @@ export function addIndexRoute(app, server, production, hostedVcm, auth) {
       await getIndexHtml(`${hostedVcm}/`, auth) :
       await getMapUiIndexHtml(production); // TODO change hosted vcm index via option?
 
-    originalIndex = await server.transformIndexHtml('index.html', originalIndex);
+    originalIndex = await server.transformIndexHtml('/index.html', originalIndex);
+
     res.status(200)
       .set({ 'Content-Type': 'text/html' })
       .end(originalIndex);
