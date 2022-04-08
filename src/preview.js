@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import { createServer } from 'vite';
 import express from 'express';
 import { logger } from '@vcsuite/cli-logger';
@@ -8,10 +9,11 @@ import {
   addMapConfigRoute,
   checkReservedDirectories,
   createConfigJsonReloadPlugin,
-  printVcmapUiVersion,
+  printVcmapUiVersion, resolveMapUi,
 } from './hostingHelpers.js';
 import build, { getDefaultConfig, getLibraryPaths } from './build.js';
 import { getContext } from './context.js';
+import setupMapUi from './setupMapUi.js';
 
 /**
  * @typedef {HostingOptions} PreviewOptions
@@ -84,6 +86,10 @@ export default async function preview(options) {
 
   if (!options.vcm) {
     logger.spin('compiling preview');
+    if (!fs.existsSync(resolveMapUi('plugins', 'node_modules'))) {
+      logger.info('Could not detect node_modules in map ui plugins. Assuming map UI not setup');
+      await setupMapUi();
+    }
     const { buildPluginsForPreview } = await import('@vcmap/ui/build/buildHelpers.js');
     await buildPluginsForPreview(getDefaultConfig(), true);
     logger.stopSpinner();

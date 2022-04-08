@@ -5,6 +5,7 @@ import './src/defaultCommand.js';
 import { create, serve, build, pack, preview } from './index.js';
 import { version } from './src/create.js';
 import { executeUiNpm } from './src/hostingHelpers.js';
+import setupMapUi from './src/setupMapUi.js';
 
 program.version(version);
 
@@ -48,11 +49,6 @@ program
 
 program
   .command('setup-map-ui')
-  .safeAction(async () => {
-    logger.spin('installing dev plugins in @vcmap/ui');
-    await executeUiNpm('install-plugins');
-    logger.stopSpinner();
-    logger.info('dev plugins installed');
-  });
+  .safeAction(setupMapUi);
 
 program.parse(process.argv);

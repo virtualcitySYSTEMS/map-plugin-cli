@@ -40,7 +40,7 @@ export async function getLibraryPaths(pluginName) {
   const { libraries } = await import('@vcmap/ui/build/buildHelpers.js');
   const pluginPath = path.join('plugins', ...pluginName.split('/'));
   const libraryPaths = {};
-  Object.entries(libraries).forEach(([library, { lib: assetName }]) => {
+  Object.entries(libraries).forEach(([library, assetName]) => {
     const assetPath = path.join('assets', `${assetName}.js`);
 
     libraryPaths[library] = path.relative(pluginPath, assetPath);
