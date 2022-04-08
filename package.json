@@ -53,7 +53,7 @@
     "eslint": "^8.9.0"
   },
   "eslintIgnore": [
-    "node_modules"
+    "node_modules", "assets/helloWorld"
   ],
   "eslintConfig": {
     "extends": "@vcsuite/eslint-config/node",

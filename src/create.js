@@ -17,9 +17,10 @@ export const { version, name } = JSON.parse(fs.readFileSync(path.join(getDirname
  * @property {string} description
  * @property {Array<Object>} scripts
  * @property {string} author
+ * @property {string} repository
  * @property {string} license
- * @property {string} mapVersion
- * @property {boolean} addDevDep
+ * @property {string} registry
+ * @property {boolean} addCiCd
  * @property {Array<string>} peerDeps
  */
 
@@ -47,15 +48,41 @@ async function createPluginTemplate(options) {
     version: options.version,
     description: options.description,
     main: 'src/index.js',
-    scripts: Object.assign({}, ...options.scripts),
+    scripts: Object.assign({ prepublishOnly: 'vcmplugin build' }, ...options.scripts),
     author: options.author,
     license: options.license,
-    engines: {
-      vcm: options.mapVersion,
-    },
     dependencies: {},
-    devDependencies: options.addDevDep ? { [name]: `^${version}` } : {}, // XXX should we add all our deps here? cesium, ol, vue etc.
+    keywords: [
+      'vcmap',
+      'plugin',
+    ],
+    files: [
+      'src/',
+      'dist/',
+      'plugin-assets/',
+      'LICENSE.md',
+      'README.md',
+    ],
+    exports: {
+      '.': './src/index.js',
+      './dist': './dist/index.js',
+    },
   };
+
+  if (options.repository) {
+    packageJson.repository = {
+      url: options.repository,
+    };
+  }
+
+  const installEsLint = options.scripts.find(script => script.lint);
+  if (installEsLint) {
+    packageJson.eslintIgnore = ['node_modules'];
+    packageJson.eslintConfig = {
+      root: true,
+      extends: '@vcsuite/eslint-config/vue',
+    };
+  }
 
   const writePackagePromise = fs.promises.writeFile(
     path.join(pluginPath, 'package.json'),
@@ -71,6 +98,11 @@ async function createPluginTemplate(options) {
     JSON.stringify(configJson, null, 2),
   );
 
+  const writeNpmrcPromise = fs.promises.writeFile(
+    path.join(pluginPath, '.npmrc'),
+    `registry=${options.registry}\n`,
+  );
+
   const writeReadmePromise = fs.promises.writeFile(
     path.join(pluginPath, 'README.md'),
     [
@@ -79,36 +111,27 @@ async function createPluginTemplate(options) {
     ].join('\n'),
   );
 
+  const writeChangesPromise = fs.promises.writeFile(
+    path.join(pluginPath, 'CHANGES.md'),
+    `# v${options.version}\nDocument features and fixes`,
+  );
+
   await fs.promises.mkdir(path.join(pluginPath, 'src'));
   logger.debug('created src directory');
 
-  const writeIndexPromise = fs.promises.writeFile(
-    path.join(pluginPath, 'src', 'index.js'),
-    [
-      'import { version, name } from \'../package.json\';',
-      '',
-      '/**',
-      ' * @param {VcsApp} app - the app from which this plugin is loaded.',
-      ' * @param {Object} config - the configuration of this plugin instance, passed in from the app.',
-      ' */',
-      'export default function(app, config) {',
-      '  return {',
-      '    get name() { return name; },',
-      '    get version() { return version; },',
-      '    initialize: async (vcsUiApp) => { console.log(\'Called before loading the rest of the current context. Passed in the containing Vcs UI App \'); },',
-      '    onVcsAppMounted: async (vcsUiApp) => { console.log(\'Called when the root UI component is mounted and managers are ready to accept components\'); },',
-      '    toJSON: async () => { console.log(\'Called when serializing this plugin instance\'); },',
-      '  };',
-      '};',
-      '',
-    ].join('\n'),
+  const copyTemplatePromise = fs.promises.cp(
+    path.join(getDirname(), '..', 'assets', 'helloWorld'),
+    pluginPath,
+    { recursive: true },
   );
 
   await Promise.all([
     writePackagePromise,
     writeConfigPromise,
+    writeNpmrcPromise,
     writeReadmePromise,
-    writeIndexPromise,
+    writeChangesPromise,
+    copyTemplatePromise,
     writeLicense(options.author, options.license, pluginPath),
   ]);
 
@@ -116,13 +139,19 @@ async function createPluginTemplate(options) {
   logger.spin('installing dependencies... (this may take a while)');
   const exec = util.promisify(childProcess.exec);
   try {
-    let installCmd = 'npm i';
-    if (options.peerDeps.length > 0) {
-      installCmd = `${installCmd} --save-peer ${options.peerDeps.join(' ')}`;
-    }
+    options.peerDeps.push('@vcmap/ui');
+    const installCmd = `npm i --save-peer ${options.peerDeps.join(' ')}`;
     const { stdout, stderr } = await exec(installCmd, { cwd: pluginPath });
     logger.log(stdout);
     logger.error(stderr);
+    const devDeps = [`${name}@${version}`];
+    if (installEsLint) {
+      devDeps.push('@vcsuite/eslint-config');
+    }
+    const installDevCmd = `npm i --save-dev ${devDeps.join(' ')}`;
+    const { stdout: stdoutDev, stderr: stderrDev } = await exec(installDevCmd, { cwd: pluginPath });
+    logger.log(stdoutDev);
+    logger.error(stderrDev);
     logger.success('installed dependencies');
   } catch (e) {
     logger.error(e);
@@ -137,15 +166,14 @@ async function createPluginTemplate(options) {
  */
 export default async function create() {
   const scriptChoices = [
-    { title: 'build', value: { build: 'vcmplugin build' } },
-    { title: 'pack', value: { pack: 'vcmplugin pack' } },
-    { title: 'start', value: { start: 'vcmplugin serve' } },
-    { title: 'preview', value: { preview: 'vcmplugin preview' } },
-    { title: 'test', value: { test: 'echo "Error: no test specified" && exit 1' } },
+    { title: 'build', value: { build: 'vcmplugin build' }, selected: true },
+    { title: 'pack', value: { pack: 'vcmplugin pack' }, selected: true },
+    { title: 'start', value: { start: 'vcmplugin serve' }, selected: true },
+    { title: 'preview', value: { preview: 'vcmplugin preview' }, selected: true },
+    { title: 'lint', value: { lint: 'eslint "{src,tests}/**/*.{js,vue}"' }, selected: true },
   ];
 
   const peerDependencyChoices = [
-    { title: '@vcmap/ui', value: '@vcmap/ui', selected: true },
     { title: '@vcsuite/ui-components', value: '@vcsuite/ui-components', selected: true },
     { title: '@vcmap/core', value: '@vcmap/core' },
     { title: '@vcmap/cesium', value: '@vcmap/cesium' },
@@ -196,6 +224,12 @@ export default async function create() {
       initial: 'author <email>',
     },
     {
+      type: 'text',
+      name: 'repository',
+      message: 'Repository url',
+      // initial: (prev, values) => `https://github.com/virtualcitySYSTEMS/${values.name}.git`,
+    },
+    {
       type: 'select',
       name: 'license',
       message: 'License',
@@ -208,9 +242,9 @@ export default async function create() {
     },
     {
       type: 'text',
-      name: 'mapVersion',
-      message: 'Map version',
-      initial: '>=5.0',
+      name: 'registry',
+      message: 'Set default npm registry',
+      initial: 'https://registry.npmjs.org',
     },
     {
       name: 'peerDeps',
@@ -221,9 +255,9 @@ export default async function create() {
     },
     {
       type: 'toggle',
-      name: 'addDevDep',
-      message: 'Add vcmplugin-cli as dev dependency?',
-      initial: true,
+      name: 'addCiCd',
+      message: 'Add default VCS gitlab ci/cd?',
+      initial: false,
       active: 'yes',
       inactive: 'no',
     },

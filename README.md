@@ -173,6 +173,16 @@ to create your project, a template already adhering to these specs will be creat
     - `peerDependency`: dependencies provided by the `@vcmap/ui`, 
     - e.g. `@vcmap/core` or `@vcmap/ui` (see [About Peer Dependencies](#About_Peer_Dependencies) for more details)
     - `devDependency`: all dependencies only required for development, e.g. `eslint`.
+- Plugins can be published to NPM, but should contain both source and minified code 
+to allow seamless integration into the [VC Map UI](https://github.com/virtualcitySYSTEMS/map-ui) environment.
+For this reason the package.json of a plugin defines two exports:
+```json
+{
+  ".": "./src/index.js",
+  "./dist": "./dist/index.js"
+}
+```
+
 
 ### Plugin Interface:
 Plugins must provide a function default export which returns an Object complying
