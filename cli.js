@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 import program from 'commander';
-import { logger } from '@vcsuite/cli-logger';
 import './src/defaultCommand.js';
 import { create, serve, build, pack, preview } from './index.js';
 import { version } from './src/create.js';
-import { executeUiNpm } from './src/hostingHelpers.js';
 import setupMapUi from './src/setupMapUi.js';
 
 program.version(version);
