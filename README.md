@@ -33,6 +33,13 @@ npm i -g @vcmap/plugin-cli
 ```
 
 ## Usage
+You can use the following workflow to quickly develop plugins. Note, that
+the @vcmpa/plugin-cli does _not_ directly depend on `@vcmap/ui` to avoid version 
+conflicts in the used API within a plugin. This means, that _all_ commands
+(except for the `create` command) must be executed from within an installed 
+plugin cli _within the plugin itself_ using npx. When using the `create` 
+command, the `@vcmap/plugin-cli` will automatically be installed as a devDependency in 
+its current major version.
 
 ### 1. Creating a new plugin
 
@@ -47,7 +54,7 @@ Be sure to check out the [peer dependecy section](#about_peer_dependencies) as w
 
 To serve your plugin in dev mode, run the following within your projects root:
 ```
-vcmplugin serve
+npx vcmplugin serve
 ```
 The dev mode gives you complete debug information on all integrated libraries (@vcmap/core, ol etc.)
 By default this command will launch a dev server at localhost:8008 using 
@@ -62,7 +69,7 @@ your plugin integrates with others, use the `preview` command.
 
 To serve your plugin in preview mode, run the following within your projects root:
 ```
-vcmplugin preview
+npx vcmplugin preview
 ```
 
 The preview mode allows you to view your plugin _in its destined environment_.
@@ -77,7 +84,7 @@ and use said application as its base instead.
 
 To build your project, run the following from within your projects root:
 ```bash
-vcmplugin build
+npx vcmplugin build
 ```
 This will build your application and place it in the `dist` directory.
 
@@ -85,7 +92,7 @@ This will build your application and place it in the `dist` directory.
 
 To pack your project for productive use, run the following from within your projects root:
 ```bash
-vcmplugin pack
+npx vcmplugin pack
 ```
 
 This will create a folder `dist` with a zip file containing your bundled code and assets.
@@ -141,19 +148,7 @@ or
 import { Feature } from 'ol';
 ```
 
-## Non-Global CLI & npm run
-If you only use the `vcmplugin-cli` as a package dependency, you must add the above scripts to
-the `package.json` and use `npm run` to execute:
-```json
-{
-  "name": "plugin-name",
-  "main": "src/index.js",
-  "scripts": {
-    "build": "vcmplugin build",
-    "serve": "vcmplugin serve --vcm ./vcm"
-  },
-  "devDependencies": {
-    "@vcmap/plugin-cli": "^0.1.1"
-  }
-}
-```
+# Notes on Developing
+To develop the plugin-cli, be sure to not `npm link` into plugins, since this will
+throw the resolver in resolving the @vcmap/ui peer dependency from the current plugin. 
+Instead run `npm pack` in the plugin cli and install the tarball in the plugin directly.
