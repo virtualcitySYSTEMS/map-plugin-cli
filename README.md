@@ -34,12 +34,14 @@ npm i -g @vcmap/plugin-cli
 
 ## Usage
 You can use the following workflow to quickly develop plugins. Note, that
-the @vcmpa/plugin-cli does _not_ directly depend on `@vcmap/ui` to avoid version 
+the `@vcmap/plugin-cli` does _not_ directly depend on `@vcmap/ui` to avoid version 
 conflicts in the used API within a plugin. This means, that _all_ commands
 (except for the `create` command) must be executed from within an installed 
 plugin cli _within the plugin itself_ using npx. When using the `create` 
 command, the `@vcmap/plugin-cli` will automatically be installed as a devDependency in 
-its current major version.
+its current major version. You can then use either the scripts defined
+by the template in your package.json `npm start`, `npm run pack` etc. or `npx`
+to execute CLI commands.
 
 ### 1. Creating a new plugin
 
