@@ -150,7 +150,72 @@ or
 import { Feature } from 'ol';
 ```
 
-# Notes on Developing
+## VC Map Plugins
+The following defines a plugin in its rough structure. If you use the `@vcmap/plugin-cli`
+to create your project, a template already adhering to these specs will be created for you.
+- All plugins must provide the following:
+    - `package.json` with name, description, version, author and dependencies.
+    - `config.json` with default parameters for the plugins' configuration.
+    - `README.md` describing the plugins' capabilities and usage.
+    - `src/index.js` JS entry point.
+- Plugin names are defined by the plugins' package name and therefore must obey npm [package name guidelines](https://docs.npmjs.com/package-name-guidelines):
+    - choose a name that
+        - is unique
+        - is descriptive
+        - is lowercase
+        - is uri encode-able
+        - doesn't start with `.`, `_` or a digit
+        - doesn't contain white spaces or any special characters like `~\'!()*"`
+    - do not use scope `@vcmap`, since it is only to be used by official plugins provided 
+      by virtual city systems. But you are encouraged to use your own scope.
+- Plugin dependencies have to be defined in the `package.json`.
+    - `dependency`: all plugin specific dependencies NOT provided by the `@vcmap/ui`.
+    - `peerDependency`: dependencies provided by the `@vcmap/ui`, 
+    - e.g. `@vcmap/core` or `@vcmap/ui` (see [About Peer Dependencies](#About_Peer_Dependencies) for more details)
+    - `devDependency`: all dependencies only required for development, e.g. `eslint`.
+
+### Plugin Interface:
+Plugins must provide a function default export which returns an Object complying
+with the VC Map Plugin Interface describe below:
+
+```typescript
+declare interface VcsPlugin<T extends Object> {
+    readonly name: string;
+    readonly version: string;
+    initialize(app: VcsUiApp):void;
+    onVcsAppMounted(app: VcsUiApp):void;
+    toJSON():T;
+    destroy():void;
+}
+
+declare function defaultExport<T extends Object>(config: T):VcsPlugin<T>;
+```
+
+A Simple JavaScript implementation of this interface can be seen below::
+```javascript
+// index.js
+/**
+ * @param {PluginExampleConfig} config
+ * @returns {VcsPlugin}
+ */
+export default function defaultExport(config) {
+  return {
+    get name() {
+      return packageJSON.name;
+    },
+    get version() {
+      return packageJSON.version;
+    },
+    initialize(app) {},
+    onVcsAppMounted(app) {},
+    toJSON() {},
+    destroy() {},
+  }
+}
+```
+
+
+## Notes on Developing
 To develop the plugin-cli, be sure to not `npm link` into plugins, since this will
 throw the resolver in resolving the @vcmap/ui peer dependency from the current plugin. 
 Instead run `npm pack` in the plugin cli and install the tarball in the plugin directly.
