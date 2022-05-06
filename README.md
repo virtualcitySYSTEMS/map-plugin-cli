@@ -7,9 +7,6 @@
 
 The `vcmplugin` cli helps develop and build plugins for the **VC Map**.
 
-For more information on plugin development refer to [map plugin examples](https://github.com/virtualcitySYSTEMS/map-plugin-examples),
-which provides documentations and a tutorial on plugin development.
-
 ## Features
 
 - Creating basic plugin structure
