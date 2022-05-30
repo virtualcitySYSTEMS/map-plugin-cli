@@ -78,7 +78,6 @@ export default async function serve(options) {
         '@vcmap/ui',
         '@vcmap/core',
         'ol',
-        '@vcsuite/ui-components',
         'proj4',
       ],
       include: [

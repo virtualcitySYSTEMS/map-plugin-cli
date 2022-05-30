@@ -174,7 +174,6 @@ export default async function create() {
   ];
 
   const peerDependencyChoices = [
-    { title: '@vcsuite/ui-components', value: '@vcsuite/ui-components', selected: true },
     { title: '@vcmap/core', value: '@vcmap/core' },
     { title: '@vcmap/cesium', value: '@vcmap/cesium' },
     { title: 'ol', value: 'ol@~6.13.0' },

@@ -20,7 +20,7 @@
 
 <script>
   import { inject } from '@vue/composition-api';
-  import { VcsButton } from '@vcsuite/ui-components';
+  import { VcsButton } from '@vcmap/ui';
 
   export const windowId = 'hello_world_window_id';
 

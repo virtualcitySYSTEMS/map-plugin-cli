@@ -113,7 +113,6 @@ as peer dependencies if you use them in your plugin:
 - @vcmap/core
 - @vcmap/cesium
 - ol
-- @vcsuite/ui-components
 - vue
 - @vue/composition-api
 - vuetify
