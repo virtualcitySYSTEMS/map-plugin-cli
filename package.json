@@ -34,10 +34,10 @@
     "prompts": "^2.4.1",
     "sass": "1.32.13",
     "semver": "^7.3.5",
-    "unplugin-vue-components": "^0.17.21",
+    "unplugin-vue-components": "^0.19.6",
     "vinyl-fs": "^3.0.3",
-    "vite": "^2.9.1",
-    "vite-plugin-vue2": "^1.7.3",
+    "vite": "^2.9.12",
+    "vite-plugin-vue2": "^2.0.1",
     "vue-template-compiler": "^2.6.14"
   },
   "peerDependencies": {
