@@ -3,14 +3,14 @@
     <v-card class="pa-2 ma-2">
       <v-container>
         <v-row class="justify-center mb-4">
-          <h1>Hello World</h1>
+          <h1>{{ $t('helloWorld.helloWorld')}}</h1>
         </v-row>
         <v-row class="justify-center">
           <VcsButton
             icon="mdi-times"
             @click="closeSelf"
           >
-            Close Window
+            {{ $t('helloWorld.close')}}
           </VcsButton>
         </v-row>
       </v-container>
