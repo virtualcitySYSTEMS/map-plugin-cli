@@ -3,18 +3,25 @@ import { version, name } from '../package.json';
 import HelloWorld, { windowId } from './helloWorld.vue';
 
 /**
- * @param {VcsUiApp} app - the app from which this plugin is loaded.
- * @param {VcsPlugin} config - the configuration of this plugin instance, passed in from the app.
+ * @param {T} config - the configuration of this plugin instance, passed in from the app.
+ * @returns {import("@vcmap/ui/src/vcsUiApp").VcsPlugin<T>}
+ * @template {Object} T
  */
-export default function(app, config) {
+export default function(config) {
   return {
     get name() { return name; },
     get version() { return version; },
+    /**
+     * @param {import("@vcmap/ui").VcsUiApp} vcsUiApp
+     * @returns {Promise<void>}
+     */
     initialize: async (vcsUiApp) => {
       console.log('Called before loading the rest of the current context. Passed in the containing Vcs UI App ');
-      console.log(app, config);
-      console.log(vcsUiApp);
     },
+    /**
+     * @param {import("@vcmap/ui").VcsUiApp} vcsUiApp
+     * @returns {Promise<void>}
+     */
     onVcsAppMounted: async (vcsUiApp) => {
       console.log('Called when the root UI component is mounted and managers are ready to accept components');
       vcsUiApp.windowManager.add({
@@ -27,6 +34,9 @@ export default function(app, config) {
         },
       }, name);
     },
+    /**
+     * @returns {Promise<T>}
+     */
     toJSON: async () => {
       console.log('Called when serializing this plugin instance');
     },
@@ -43,6 +53,9 @@ export default function(app, config) {
           close: 'Schließen',
         },
       },
+    },
+    destroy() {
+      console.log('hook to cleanup');
     },
   };
 };
