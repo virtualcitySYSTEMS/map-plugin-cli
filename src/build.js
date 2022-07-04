@@ -82,6 +82,9 @@ export default async function buildModule(options) {
         external,
         output: {
           paths: libraryPaths,
+          manualChunks() { // ensure only one chunk will be created
+            return 'index';
+          },
         },
       },
       watch: options.watch ? {

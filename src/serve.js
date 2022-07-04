@@ -103,6 +103,13 @@ export default async function serve(options) {
       https: options.https,
       proxy,
     },
+    css: {
+      preprocessorOptions: {
+        sass: {
+          additionalData: "\n@import './node_modules/@vcmap/ui/src/styles/variables.scss'\n",
+        },
+      },
+    },
   });
 
   addMapConfigRoute(app, options.mapConfig, options.auth, options.config);
