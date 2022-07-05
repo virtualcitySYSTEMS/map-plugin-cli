@@ -42,7 +42,7 @@
   },
   "peerDependencies": {
     "@vcmap/ui": "^5.0.0-rc.9",
-    "vue": "^2.6.14"
+    "vue": "~2.6.14"
   },
   "peerDependenciesMeta": {
     "@vcmap/ui": {
