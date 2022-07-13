@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 import program from 'commander';
 import './src/defaultCommand.js';
-import { create, serve, build, pack, preview } from './index.js';
+import {
+  create, serve, build, pack, preview,
+} from './index.js';
 import { version } from './src/create.js';
 import setupMapUi from './src/setupMapUi.js';
+import buildStagingApp from './src/buildStagingApp.js';
 
 program.version(version);
 
@@ -44,6 +47,11 @@ program
   .option('--development', 'set mode to development')
   .option('--watch', 'watch file changes')
   .safeAction(build);
+
+program
+  .command('buildStagingApp')
+  .defaultOptions()
+  .safeAction(buildStagingApp);
 
 program
   .command('setup-map-ui')

@@ -19,8 +19,6 @@ export const { version, name } = JSON.parse(fs.readFileSync(path.join(getDirname
  * @property {string} author
  * @property {string} repository
  * @property {string} license
- * @property {string} registry
- * @property {boolean} addCiCd
  * @property {Array<string>} peerDeps
  */
 
@@ -100,7 +98,7 @@ async function createPluginTemplate(options) {
 
   const writeNpmrcPromise = fs.promises.writeFile(
     path.join(pluginPath, '.npmrc'),
-    `registry=${options.registry}\n`,
+    'registry=https://registry.npmjs.org\n',
   );
 
   const writeReadmePromise = fs.promises.writeFile(
@@ -170,6 +168,7 @@ export default async function create() {
     { title: 'pack', value: { pack: 'vcmplugin pack' }, selected: true },
     { title: 'start', value: { start: 'vcmplugin serve' }, selected: true },
     { title: 'preview', value: { preview: 'vcmplugin preview' }, selected: true },
+    { title: 'buildStagingApp', value: { preview: 'vcmplugin buildStagingApp' }, selected: true },
     { title: 'lint', value: { lint: 'eslint "{src,tests}/**/*.{js,vue}"' }, selected: true },
   ];
 
@@ -240,25 +239,11 @@ export default async function create() {
         })),
     },
     {
-      type: 'text',
-      name: 'registry',
-      message: 'Set default npm registry',
-      initial: 'https://registry.npmjs.org',
-    },
-    {
       name: 'peerDeps',
       type: 'multiselect',
       message: 'Add the following peer dependencies to the package.json.',
       choices: peerDependencyChoices,
       hint: '- Space to select. Enter to submit',
-    },
-    {
-      type: 'toggle',
-      name: 'addCiCd',
-      message: 'Add default VCS gitlab ci/cd?',
-      initial: false,
-      active: 'yes',
-      inactive: 'no',
     },
   ];
 

@@ -12,6 +12,8 @@ import { getContext } from './context.js';
  * @typedef {Object} BuildOptions
  * @property {boolean} [development]
  * @property {boolean} [watch]
+ * @property {string} [outputPath] path where the plugin should be written, relative to the dist folder, default ''
+ * @property {boolean} [keepDistFolder] will not clear the dist folder if set to true
  */
 
 export function getDefaultConfig() {
@@ -62,8 +64,10 @@ export default async function buildModule(options) {
   const pluginName = await getPluginName();
   const libraryPaths = await getLibraryPaths(pluginName);
   const distPath = path.join(getContext(), 'dist');
-  await fs.rm(distPath, { recursive: true, force: true });
-  await fs.mkdir(distPath);
+  if (!options.keepDistFolder) {
+    await fs.rm(distPath, { recursive: true, force: true });
+    await fs.mkdir(distPath);
+  }
   const external = Object.keys(libraryPaths);
   const config = {
     ...getDefaultConfig(),
@@ -93,5 +97,5 @@ export default async function buildModule(options) {
     },
   };
   const { buildLibrary } = await import('@vcmap/ui/build/buildHelpers.js');
-  await buildLibrary(config, '', 'index', '', true);
+  await buildLibrary(config, options.outputPath ?? '', 'index', '', true);
 }

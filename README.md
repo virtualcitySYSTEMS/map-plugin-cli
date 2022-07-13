@@ -79,7 +79,32 @@ By default, this will launch a dev server at localhost:5005 using the @vcmap/ui 
 as its base. Alternatively you can provide a URL to a hosted VC Map application
 and use said application as its base instead.
 
-### 4. Building a plugin
+### 4. Building a plugin staging application 
+
+A staging application creates a full deployable VC Map in the `dist` folder with the following components.
+- compiled @vcmap/ui library and all dependencies
+- default @vcmap/ui configurations
+- default @vcmap/ui plugins
+- compiled plugin which is in development. 
+
+Building the staging application will collect all parts and will inject the plugin in development in the default
+map configuration. The staging application can for example be used to deploy the App in an Apache in a postCommit 
+Pipeline. (See .gitlab-ci.yml for an example).
+```bash
+npx vcmplugin buildStagingApp
+```
+To start a webserver to serve the content of the `dist` folder call `npx vite preview`; This will start a static webserver
+on the port 4173.
+
+The Dockerfile in `build/staging/Dockerfile` can be used to create a Docker Container which serves the content of the dist folder.
+```bash
+npx vcmplugin buildStagingApp
+cd dist
+docker build -f ../build/staging/Dockerfile -t vcmap:staging .
+docker run --rm -p 5000:80 vcmap:staging
+```
+
+### 5. Building a plugin
 
 To build your project, run the following from within your projects root:
 ```bash
@@ -87,7 +112,7 @@ npx vcmplugin build
 ```
 This will build your application and place it in the `dist` directory.
 
-### 5. Integrating a plugin in a productive VC MAP
+### 6. Integrating a plugin in a productive VC MAP
 
 To pack your project for productive use, run the following from within your projects root:
 ```bash
