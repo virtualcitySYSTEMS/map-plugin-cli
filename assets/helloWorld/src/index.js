@@ -6,6 +6,7 @@ import HelloWorld, { windowId } from './helloWorld.vue';
  * @param {T} config - the configuration of this plugin instance, passed in from the app.
  * @returns {import("@vcmap/ui/src/vcsUiApp").VcsPlugin<T>}
  * @template {Object} T
+ * @template {Object} S
  */
 export default function(config) {
   return {
@@ -13,9 +14,10 @@ export default function(config) {
     get version() { return version; },
     /**
      * @param {import("@vcmap/ui").VcsUiApp} vcsUiApp
+     * @param {S=} state
      * @returns {Promise<void>}
      */
-    initialize: async (vcsUiApp) => {
+    initialize: async (vcsUiApp, state) => {
       console.log('Called before loading the rest of the current context. Passed in the containing Vcs UI App ');
     },
     /**
@@ -35,10 +37,18 @@ export default function(config) {
       }, name);
     },
     /**
+     * @returns {Promise<S>}
+     */
+    getState: async () => {
+      console.log('Called when serializing this plugin instance');
+      return {};
+    },
+    /**
      * @returns {Promise<T>}
      */
     toJSON: async () => {
       console.log('Called when serializing this plugin instance');
+      return {};
     },
     i18n: {
       en: {

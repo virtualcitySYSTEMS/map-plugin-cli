@@ -1,6 +1,5 @@
-import { Transform } from 'stream';
 import fs from 'fs';
-import vinylFs from 'vinyl-fs';
+import { readFile, writeFile } from 'fs/promises';
 import archiver from 'archiver';
 import { logger } from '@vcsuite/cli-logger';
 import { getPluginName } from './packageJsonHelpers.js';
@@ -11,29 +10,10 @@ import build from './build.js';
  * @param {string} name
  * @returns {Promise<void>}
  */
-function replaceAssets(name) {
-  const replaceTransform = new Transform({
-    objectMode: true,
-    transform(data, encoding, callback) {
-      data.contents = Buffer.from(String(data.contents)
-        .replace(/\.?\/?(plugin-assets)\//g, `plugins/${name}/$1/`));
-
-      callback(null, data);
-    },
-  });
-
-  const context = getContext();
-  const stream = vinylFs.src([resolveContext('dist', '*')], {
-    cwd: context,
-    allowEmpty: false,
-  })
-    .pipe(replaceTransform)
-    .pipe(vinylFs.dest(resolveContext('dist')));
-
-  return new Promise((resolve, reject) => {
-    stream.on('finish', () => { resolve(); });
-    stream.on('error', reject);
-  });
+async function replaceAssets(name) {
+  let indexJSContent = await readFile(getContext('dist', 'index.js'));
+  indexJSContent = indexJSContent.replace(/\.?\/?(plugin-assets)\//g, `plugins/${name}/$1/`);
+  await writeFile(getContext('dist', 'index.js'), indexJSContent);
 }
 
 /**
@@ -89,7 +69,6 @@ function zip(name) {
       ['README.md'],
       ['config.json'],
       ['dist', 'index.js'],
-      ['dist', 'style.css'],
     ].forEach((fileArray) => {
       const file = resolveContext(...fileArray);
       if (fs.existsSync(file)) {

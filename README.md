@@ -139,7 +139,6 @@ as peer dependencies if you use them in your plugin:
 - @vcmap/cesium
 - ol
 - vue
-- @vue/composition-api
 - vuetify
 
 During the build step, these libraries are automatically externalized by the vcmplugin-cli and in
@@ -210,16 +209,17 @@ Plugins must provide a function default export which returns an Object complying
 with the VC Map Plugin Interface describe below:
 
 ```typescript
-declare interface VcsPlugin<T extends Object> {
+declare interface VcsPlugin<T extends Object, S extends Object> {
     readonly name: string;
     readonly version: string;
-    initialize(app: VcsUiApp):void;
-    onVcsAppMounted(app: VcsUiApp):void;
-    toJSON():T;
+    initialize(app: VcsUiApp, state?: S):Promise<void>;
+    onVcsAppMounted(app: VcsUiApp):Promise<void>;
+    getState():Promise<S>;
+    toJSON():Promise<T>;
     destroy():void;
 }
 
-declare function defaultExport<T extends Object>(config: T):VcsPlugin<T>;
+declare function defaultExport<T extends Object, S extends Object>(config: T):VcsPlugin<T, S>;
 ```
 
 A Simple JavaScript implementation of this interface can be seen below::
@@ -236,10 +236,11 @@ export default function defaultExport(config) {
     },
     get version() {
       return packageJSON.version;
-    },
-    initialize(app) {},
-    onVcsAppMounted(app) {},
-    toJSON() {},
+    }, 
+    async initialize (app, state) {},
+    async onVcsAppMounted(app) {}, 
+    async getState() { return {}; },
+    async toJSON() { return {}; },
     destroy() {},
   }
 }

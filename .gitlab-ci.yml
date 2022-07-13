@@ -1,5 +1,5 @@
 default:
-  image: gitlab.virtualcitysystems.de:5050/vcsuite/devops/gitlabrunner/node:14
+  image: gitlab.virtualcitysystems.de:5050/vcsuite/devops/gitlabrunner/node:16-bullseye
 
 variables:
   GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_PROJECT_PATH_SLUG/$CI_COMMIT_REF_SLUG
@@ -33,12 +33,11 @@ lint:
   script:
     - npm run lint
 
-# re-introduce audit in 2.0 with vite. this would require migrating webpack-dev-server
-#audit:
-#  <<: *after_build_definition
-#  stage: test
-#  script:
-#    - npm audit --production --audit-level=low
+audit:
+  <<: *after_build_definition
+  stage: test
+  script:
+    - npm audit --production --audit-level=low
 
 publish:
   <<: *after_build_definition
