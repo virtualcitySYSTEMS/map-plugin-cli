@@ -168,7 +168,7 @@ export default async function create() {
     { title: 'pack', value: { pack: 'vcmplugin pack' }, selected: true },
     { title: 'start', value: { start: 'vcmplugin serve' }, selected: true },
     { title: 'preview', value: { preview: 'vcmplugin preview' }, selected: true },
-    { title: 'buildStagingApp', value: { preview: 'vcmplugin buildStagingApp' }, selected: true },
+    { title: 'buildStagingApp', value: { buildStagingApp: 'vcmplugin buildStagingApp' }, selected: true },
     { title: 'lint', value: { lint: 'eslint "{src,tests}/**/*.{js,vue}"' }, selected: true },
   ];
 
@@ -176,7 +176,8 @@ export default async function create() {
     { title: '@vcmap/core', value: '@vcmap/core' },
     { title: '@vcmap/cesium', value: '@vcmap/cesium' },
     { title: 'ol', value: 'ol@~6.13.0' },
-    { title: '@vue/composition-api', value: '@vue/composition-api@~1.4.5' },
+    { title: 'vue', value: 'vue@~2.7.3' },
+    { title: 'vuetify', value: 'vue@~2.6.7' },
   ];
 
   const questions = [

@@ -19,10 +19,10 @@
 </template>
 
 <script>
-  import { inject } from '@vue/composition-api';
+  import { inject } from 'vue';
   import { VcsButton } from '@vcmap/ui';
 
-  export const windowId = 'hello_world_window_id';
+  export const windowId = 'hello_world_window_id_plugin-cli';
 
   export default {
     name: 'HelloWorld',

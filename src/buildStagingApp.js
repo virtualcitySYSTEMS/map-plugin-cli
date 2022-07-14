@@ -1,11 +1,12 @@
-import fs from 'fs';
-import { cp, copyFile, writeFile } from 'fs/promises';
+import { cp, copyFile, writeFile, rm, mkdir } from 'fs/promises';
 import path from 'path';
-import { getContext } from './context.js';
+import fs from 'fs';
+import { getContext, resolveContext } from './context.js';
 import { getConfigJson } from './hostingHelpers.js';
 import { getPluginName } from './packageJsonHelpers.js';
 import buildModule, { getDefaultConfig } from './build.js';
 import setupMapUi from './setupMapUi.js';
+import { replaceAssets } from './pack.js';
 
 
 /**
@@ -16,14 +17,25 @@ export default async function buildStagingApp() {
   const pluginName = await getPluginName();
   const distPath = path.join(getContext(), 'dist');
   // Clear dist folder
-  await fs.rm(distPath, { recursive: true, force: true });
-  await fs.mkdir(distPath);
+  await rm(distPath, { recursive: true, force: true });
+  await mkdir(distPath);
   await setupMapUi();
   const { buildPluginsForPreview } = await import('@vcmap/ui/build/buildHelpers.js');
   await buildPluginsForPreview(getDefaultConfig(), true);
-  await fs.promises.mkdir(path.join(distPath, 'plugins', pluginName), { recursive: true });
+  await mkdir(path.join(distPath, 'plugins', pluginName), { recursive: true });
 
   await buildModule({ outputPath: `plugins/${pluginName}`, keepDistFolder: true });
+
+  // copy assets folder if exists
+  if (fs.existsSync(resolveContext('plugin-assets'))) {
+    await replaceAssets(path.join(distPath, 'plugins', pluginName, 'index.js'), pluginName);
+    await cp(
+      resolveContext('plugin-assets'),
+      path.join(distPath, 'plugins', pluginName, 'plugin-assets'),
+      { recursive: true },
+    );
+  }
+
   await copyFile(
     path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'index.html'),
     path.join(distPath, 'index.html'),

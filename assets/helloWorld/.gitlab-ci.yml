@@ -11,6 +11,7 @@ stages:
   - deploy
   - version
   - publish
+  - deployCluster
 
 .template: &job_definition
   only:
@@ -109,8 +110,10 @@ stopEnvironment:
     action: stop
 
 deployStagingCluster:
-  <<: *staging_build_template
   stage: deployCluster
+  except:
+    variables:
+      - $PUBLISH
   inherit:
     variables: false
   variables:

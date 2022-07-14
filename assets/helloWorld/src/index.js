@@ -53,13 +53,13 @@ export default function(config) {
     i18n: {
       en: {
         helloWorld: {
-          helloWorld: 'Hello World',
+          helloWorld: '@vcmap/plugin-cli - Hello World',
           close: 'Close',
         },
       },
       de: {
         helloWorld: {
-          helloWorld: 'Hallo Welt',
+          helloWorld: '@vcmap/plugin-cli - Hallo Welt',
           close: 'Schließen',
         },
       },
