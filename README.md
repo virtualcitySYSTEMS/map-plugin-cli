@@ -178,6 +178,7 @@ to create your project, a template already adhering to these specs will be creat
     - `config.json` with default parameters for the plugins' configuration.
     - `README.md` describing the plugins' capabilities and usage.
     - `src/index.js` JS entry point.
+- A plugin _may_ provide static plugin assets in a `plugin-assets` directory. (See [About Plugin Assets](#About-Plugin-Assets)
 - Plugin names are defined by the plugins' package name and therefore must obey npm [package name guidelines](https://docs.npmjs.com/package-name-guidelines):
     - choose a name that
         - is unique
@@ -191,7 +192,7 @@ to create your project, a template already adhering to these specs will be creat
 - Plugin dependencies have to be defined in the `package.json`.
     - `dependency`: all plugin specific dependencies NOT provided by the `@vcmap/ui`.
     - `peerDependency`: dependencies provided by the `@vcmap/ui`, 
-    - e.g. `@vcmap/core` or `@vcmap/ui` (see [About Peer Dependencies](#About_Peer_Dependencies) for more details)
+    - e.g. `@vcmap/core` or `@vcmap/ui` (see [About Peer Dependencies](#About-Peer-Dependencies) for more details)
     - `devDependency`: all dependencies only required for development, e.g. `eslint`.
 - Plugins can be published to NPM, but should contain both source and minified code 
 to allow seamless integration into the [VC Map UI](https://github.com/virtualcitySYSTEMS/map-ui) environment.
@@ -203,10 +204,11 @@ For this reason the package.json of a plugin defines two exports:
 }
 ```
 
-
 ### Plugin Interface:
 Plugins must provide a function default export which returns an Object complying
-with the VC Map Plugin Interface describe below:
+with the VC Map Plugin Interface describe below. This function is passed the current
+configuration of the plugin as its first argument and the base URL (without the filename)
+from which the plugin was loaded as its second argument.
 
 ```typescript
 declare interface VcsPlugin<T extends Object, S extends Object> {
@@ -219,7 +221,7 @@ declare interface VcsPlugin<T extends Object, S extends Object> {
     destroy():void;
 }
 
-declare function defaultExport<T extends Object, S extends Object>(config: T):VcsPlugin<T, S>;
+declare function defaultExport<T extends Object, S extends Object>(config: T, baseUrl: string):VcsPlugin<T, S>;
 ```
 
 A Simple JavaScript implementation of this interface can be seen below::
@@ -229,7 +231,7 @@ A Simple JavaScript implementation of this interface can be seen below::
  * @param {PluginExampleConfig} config
  * @returns {VcsPlugin}
  */
-export default function defaultExport(config) {
+export default function defaultExport(config, baseUrl) {
   return {
     get name() {
       return packageJSON.name;
@@ -237,7 +239,9 @@ export default function defaultExport(config) {
     get version() {
       return packageJSON.version;
     }, 
-    async initialize (app, state) {},
+    async initialize (app, state) {
+      console.log('I was loaded from ', baseUrl);
+    },
     async onVcsAppMounted(app) {}, 
     async getState() { return {}; },
     async toJSON() { return {}; },
@@ -246,6 +250,60 @@ export default function defaultExport(config) {
 }
 ```
 
+### About Plugin Assets
+Plugin assets are considered to be static files, such as images, fonts etc. which shall be
+access from within the plugin. Since plugins have no knowledge of _where_ they will 
+be deployed, the `@vcmap/ui` provides the `getPluginAssetUrl` helper function
+which allows you to generate an asset URL at runtime.
+
+Place all your assets into the `plugin-assets` directory in your plugin (top level). Your
+plugin structure should look something like this:
+```
+-| my-plugin/
+---| src/
+-----| index.js
+---| plugin-assets/
+-----| icon.png
+---| package.json
+```
+
+To access the `icon.png` from within your code, you would do the following:
+```vue
+<template>
+  <v-img
+    :src="icon"
+    alt="plugin-icon"
+    max-width="200"
+  />
+</template>
+
+<script>
+  import { inject } from 'vue';
+  import { getPluginAssetUrl } from '@vcmap/ui';
+  import { name } from '../package.json';
+
+  export const windowId = 'hello_world_window_id_plugin-cli';
+
+  export default {
+    name: 'HelloWorld',
+    components: { VcsButton },
+    setup() {
+      const app = inject('vcsApp');
+
+      return {
+        icon: getPluginAssetUrl(app, name, 'plugin-assets/icon.png'),
+      };
+    },
+  };
+</script>
+```
+You can of course, use `fetch` to retrieve assets in the same fashion. Should you
+wish to use assets (such as images) in your _css_ make sure that they are embedded or
+you will have to use an inline style & a bound vue property, since the helper 
+cannot handle css resources.
+
+If you have to access assets _before_ your plugin is created (in the exported function of
+your plugin code), you will have to use the `baseUrl` provided to you to generate the URL yourself.
 
 ## Notes on Developing
 To develop the plugin-cli, be sure to not `npm link` into plugins, since this will

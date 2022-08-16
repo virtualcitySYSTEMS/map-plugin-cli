@@ -271,6 +271,16 @@ export async function getMapUiIndexHtml(production) {
 
 /**
  * @param {Express} app
+ * @param {string} base
+ */
+export function addPluginAssets(app, base) {
+  app.use(`/${base}/plugin-assets*`, (req, res) => {
+    res.redirect(308, req.originalUrl.replace(`/${base}`, ''));
+  });
+}
+
+/**
+ * @param {Express} app
  * @param {import("vite").ViteDevServer} server
  * @param {boolean} [production]
  * @param {string} [hostedVcm]

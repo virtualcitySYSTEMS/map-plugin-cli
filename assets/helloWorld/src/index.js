@@ -4,11 +4,12 @@ import HelloWorld, { windowId } from './helloWorld.vue';
 
 /**
  * @param {T} config - the configuration of this plugin instance, passed in from the app.
+ * @param {string} baseUrl - the absolute URL from which the plugin was loaded (without filename, ending on /)
  * @returns {import("@vcmap/ui/src/vcsUiApp").VcsPlugin<T>}
  * @template {Object} T
  * @template {Object} S
  */
-export default function(config) {
+export default function(config, baseUrl) {
   return {
     get name() { return name; },
     get version() { return version; },

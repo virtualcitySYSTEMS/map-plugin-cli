@@ -1,21 +1,10 @@
 import fs from 'fs';
-import { readFile, writeFile } from 'fs/promises';
 import archiver from 'archiver';
 import { logger } from '@vcsuite/cli-logger';
 import { getPluginName } from './packageJsonHelpers.js';
 import { resolveContext } from './context.js';
 import build from './build.js';
 
-/**
- * @param {string} fileName
- * @param {string} name
- * @returns {Promise<void>}
- */
-export async function replaceAssets(fileName, name) {
-  let fileContent = await readFile(fileName, { encoding: 'utf8' });
-  fileContent = fileContent.replace(/\.?\/?(plugin-assets)\//g, `plugins/${name}/$1/`);
-  await writeFile(fileName, fileContent);
-}
 
 /**
  * @returns {Promise<void>}
@@ -94,8 +83,6 @@ export default async function pack() {
   const pluginName = await getPluginName();
   logger.spin(`building plugin: ${pluginName}`);
   await build({});
-  await replaceAssets(resolveContext('dist', 'index.js'), pluginName);
-  logger.debug('fixed asset paths');
   await ensureConfigJson();
   logger.debug('ensuring config.json');
   await zip(pluginName);

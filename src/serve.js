@@ -10,7 +10,7 @@ import { getContext } from './context.js';
 import {
   addConfigRoute,
   addIndexRoute,
-  addMapConfigRoute,
+  addMapConfigRoute, addPluginAssets,
   checkReservedDirectories,
   createConfigJsonReloadPlugin,
   printVcmapUiVersion,
@@ -114,6 +114,7 @@ export default async function serve(options) {
 
   addMapConfigRoute(app, options.mapConfig, options.auth, options.config);
   addIndexRoute(app, server);
+  addPluginAssets(app, 'src');
   await addConfigRoute(app, options.auth, options.config);
 
   app.use(server.middlewares);

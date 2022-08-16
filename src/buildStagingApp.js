@@ -6,7 +6,6 @@ import { getConfigJson } from './hostingHelpers.js';
 import { getPluginName } from './packageJsonHelpers.js';
 import buildModule, { getDefaultConfig } from './build.js';
 import setupMapUi from './setupMapUi.js';
-import { replaceAssets } from './pack.js';
 
 
 /**
@@ -28,7 +27,6 @@ export default async function buildStagingApp() {
 
   // copy assets folder if exists
   if (fs.existsSync(resolveContext('plugin-assets'))) {
-    await replaceAssets(path.join(distPath, 'plugins', pluginName, 'index.js'), pluginName);
     await cp(
       resolveContext('plugin-assets'),
       path.join(distPath, 'plugins', pluginName, 'plugin-assets'),

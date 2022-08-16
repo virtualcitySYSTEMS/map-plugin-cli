@@ -7,6 +7,7 @@ import {
   addConfigRoute,
   addIndexRoute,
   addMapConfigRoute,
+  addPluginAssets,
   checkReservedDirectories,
   createConfigJsonReloadPlugin,
   printVcmapUiVersion, resolveMapUi,
@@ -83,6 +84,7 @@ export default async function preview(options) {
 
   addMapConfigRoute(app, options.vcm ? `${options.vcm}/map.config.json` : null, options.auth, options.config, true);
   addIndexRoute(app, server, true, options.vcm, options.auth);
+  addPluginAssets(app, 'dist');
 
   if (!options.vcm) {
     logger.spin('compiling preview');

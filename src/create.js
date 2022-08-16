@@ -9,6 +9,7 @@ import { LicenseType, writeLicense } from './licenses.js';
 import { getDirname } from './hostingHelpers.js';
 
 export const { version, name } = JSON.parse(fs.readFileSync(path.join(getDirname(), '..', 'package.json')).toString());
+const exec = util.promisify(childProcess.exec);
 
 /**
  * @typedef {Object} PluginTemplateOptions
@@ -21,6 +22,51 @@ export const { version, name } = JSON.parse(fs.readFileSync(path.join(getDirname
  * @property {string} license
  * @property {Array<string>} peerDeps
  */
+
+/**
+ * @enum {number}
+ */
+const DepType = {
+  DEP: 1,
+  PEER: 2,
+  DEV: 3,
+};
+
+/**
+ * @param {Array<string>} deps
+ * @param {DepType} type
+ * @param {string} pluginPath
+ * @returns {Promise<void>}
+ */
+async function installDeps(deps, type, pluginPath) {
+  let save = '--save';
+  if (type === DepType.PEER) {
+    save = '--save-peer';
+  } else if (type === DepType.DEV) {
+    save = '--save-dev';
+  }
+  const installCmd = `npm i ${save} ${deps.join(' ')}`;
+  const { stdout, stderr } = await exec(installCmd, { cwd: pluginPath });
+  logger.log(stdout);
+  logger.error(stderr);
+}
+
+/**
+ * @param {Array<string>} deps
+ * @param {string} pluginPath
+ * @returns {Promise<void>}
+ */
+async function setUiPeerDepVersions(deps, pluginPath) {
+  const uiPackageJsonContent = await fs.promises.readFile(
+    path.join(pluginPath, 'node_modules', '@vcmap', 'ui', 'package.json'),
+  );
+  const uiPackageJson = JSON.parse(uiPackageJsonContent);
+  deps.forEach((dep, index) => {
+    if (uiPackageJson.peerDependencies[dep]) {
+      deps[index] = `${dep}@${uiPackageJson.peerDependencies[dep]}`;
+    }
+  });
+}
 
 /**
  * @param {PluginTemplateOptions} options
@@ -135,21 +181,15 @@ async function createPluginTemplate(options) {
 
 
   logger.spin('installing dependencies... (this may take a while)');
-  const exec = util.promisify(childProcess.exec);
   try {
-    options.peerDeps.push('@vcmap/ui');
-    const installCmd = `npm i --save-peer ${options.peerDeps.join(' ')}`;
-    const { stdout, stderr } = await exec(installCmd, { cwd: pluginPath });
-    logger.log(stdout);
-    logger.error(stderr);
+    await installDeps(['@vcmap/ui'], DepType.PEER, pluginPath);
+    await setUiPeerDepVersions(options.peerDeps, pluginPath);
+    await installDeps(options.peerDeps, DepType.PEER, pluginPath);
     const devDeps = [`${name}@${version}`];
     if (installEsLint) {
       devDeps.push('@vcsuite/eslint-config');
     }
-    const installDevCmd = `npm i --save-dev ${devDeps.join(' ')}`;
-    const { stdout: stdoutDev, stderr: stderrDev } = await exec(installDevCmd, { cwd: pluginPath });
-    logger.log(stdoutDev);
-    logger.error(stderrDev);
+    await installDeps(devDeps, DepType.DEV, pluginPath);
     logger.success('installed dependencies');
   } catch (e) {
     logger.error(e);
@@ -175,9 +215,9 @@ export default async function create() {
   const peerDependencyChoices = [
     { title: '@vcmap/core', value: '@vcmap/core' },
     { title: '@vcmap/cesium', value: '@vcmap/cesium' },
-    { title: 'ol', value: 'ol@~6.13.0' },
-    { title: 'vue', value: 'vue@~2.7.3' },
-    { title: 'vuetify', value: 'vue@~2.6.7' },
+    { title: 'ol', value: 'ol' },
+    { title: 'vue', value: 'vue' },
+    { title: 'vuetify', value: 'vuetify' },
   ];
 
   const questions = [
