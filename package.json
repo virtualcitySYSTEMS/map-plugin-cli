@@ -34,13 +34,12 @@
     "prompts": "^2.4.1",
     "sass": "1.32.13",
     "semver": "^7.3.5",
-    "unplugin-vue-components": "^0.21.1",
-    "vite": "^2.9.14",
-    "vite-plugin-vue2": "^2.0.1",
+    "vite": "^3.1.8",
+    "vite-plugin-vue2": "^2.0.2",
     "vue-template-compiler": "~2.7.3"
   },
   "peerDependencies": {
-    "@vcmap/ui": "^5.0.0-rc.11",
+    "@vcmap/ui": "^5.0.0-rc.14",
     "vue": "~2.7.3"
   },
   "peerDependenciesMeta": {

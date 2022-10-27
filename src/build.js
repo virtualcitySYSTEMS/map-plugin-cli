@@ -3,8 +3,6 @@ import fs from 'fs/promises';
 import { createVuePlugin } from 'vite-plugin-vue2';
 import vcsOl from '@vcmap/rollup-plugin-vcs-ol';
 import { logger } from '@vcsuite/cli-logger';
-import { VuetifyResolver } from 'unplugin-vue-components/dist/resolvers.js';
-import Components from 'unplugin-vue-components/dist/vite.js';
 import { getPluginEntry, getPluginName } from './packageJsonHelpers.js';
 import { getContext } from './context.js';
 
@@ -21,14 +19,6 @@ export function getDefaultConfig() {
     publicDir: false,
     plugins: [
       createVuePlugin(),
-      Components({
-        resolvers: [
-          VuetifyResolver(),
-        ],
-        dirs: ['./src'],
-        include: [],
-        exclude: [],
-      }),
       vcsOl(),
     ],
   };

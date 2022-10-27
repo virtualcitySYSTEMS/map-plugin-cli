@@ -4,8 +4,6 @@ import { createVuePlugin } from 'vite-plugin-vue2';
 import express from 'express';
 import { logger } from '@vcsuite/cli-logger';
 import path from 'path';
-import { VuetifyResolver } from 'unplugin-vue-components/dist/resolvers.js';
-import Components from 'unplugin-vue-components/dist/vite.js';
 import { getContext } from './context.js';
 import {
   addConfigRoute,
@@ -90,13 +88,6 @@ export default async function serve(options) {
     plugins: [
       createVuePlugin(),
       createConfigJsonReloadPlugin(),
-      Components({
-        resolvers: [
-          VuetifyResolver(),
-        ],
-        include: [],
-        exclude: [],
-      }),
     ],
     server: {
       middlewareMode: 'html',
