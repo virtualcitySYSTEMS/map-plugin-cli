@@ -301,10 +301,14 @@ export function addIndexRoute(app, server, production, hostedVcm, auth) {
 }
 
 /**
- * @param {string} command
+ * @param {string|null} args
+ * @param {string} [command='run']
  * @returns {Promise<string>}
  */
-export function executeUiNpm(command) {
+export function executeUiNpm(args, command = 'run') {
   const mapUiDir = resolveMapUi();
-  return promiseExec(`npm run ${command}`, { cwd: mapUiDir });
+  if (args) {
+    return promiseExec(`npm ${command} ${args}`, { cwd: mapUiDir });
+  }
+  return promiseExec(`npm ${command}`, { cwd: mapUiDir });
 }

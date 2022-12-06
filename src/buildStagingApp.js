@@ -1,8 +1,9 @@
 import { cp, copyFile, writeFile, rm, mkdir } from 'fs/promises';
 import path from 'path';
 import fs from 'fs';
+import { logger } from '@vcsuite/cli-logger';
 import { getContext, resolveContext } from './context.js';
-import { getConfigJson } from './hostingHelpers.js';
+import { executeUiNpm, getConfigJson, resolveMapUi } from './hostingHelpers.js';
 import { getPluginName } from './packageJsonHelpers.js';
 import buildModule, { getDefaultConfig } from './build.js';
 import setupMapUi from './setupMapUi.js';
@@ -34,6 +35,15 @@ export default async function buildStagingApp() {
     );
   }
 
+  // In case @vcmap/ui is linked via git+ssh, dist folder is not available and must be built first
+  if (!fs.existsSync(resolveMapUi('dist'))) {
+    logger.spin('building @vcmap/ui');
+    await executeUiNpm('--production=false --no-package-lock', 'install');
+    await executeUiNpm('build');
+    logger.stopSpinner();
+    logger.info('@vcmap/ui built');
+  }
+
   await copyFile(
     path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'index.html'),
     path.join(distPath, 'index.html'),
@@ -55,4 +65,5 @@ export default async function buildStagingApp() {
     path.join(distPath, 'config'),
     { recursive: true },
   );
+  logger.success('buildStagingApp finished');
 }
