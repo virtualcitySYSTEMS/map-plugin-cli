@@ -18,7 +18,7 @@ import { getPluginName } from './packageJsonHelpers.js';
 
 /**
  * @typedef {HostingOptions} ServeOptions
- * @property {string} [mapConfig] - an filename or URL to a map config
+ * @property {string} [mapConfig] - a filename or URL to a map config
  */
 
 async function getProxy(protocol, port) {
@@ -48,6 +48,13 @@ async function getProxy(protocol, port) {
   if (hasThisPlugin) {
     delete proxy[hasThisPlugin];
   }
+
+  // exampleData is not part of the @vcmap/ui package and must be proxied therefore
+  proxy['^/exampleData'] = {
+    target: 'https://raw.githubusercontent.com/virtualcitySYSTEMS/map-ui/main',
+    changeOrigin: true,
+    secure: false,
+  };
   return proxy;
 }
 
@@ -90,7 +97,7 @@ export default async function serve(options) {
       createConfigJsonReloadPlugin(),
     ],
     server: {
-      middlewareMode: 'html',
+      middlewareMode: true,
       https: options.https,
       proxy,
     },
