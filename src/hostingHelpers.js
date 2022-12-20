@@ -1,6 +1,4 @@
-import { fileURLToPath, URL } from 'url';
-import { promisify } from 'util';
-import { exec } from 'child_process';
+import { URL } from 'url';
 import https from 'https';
 import http from 'http';
 import fs from 'fs';
@@ -8,6 +6,7 @@ import path from 'path';
 import { logger } from '@vcsuite/cli-logger';
 import { getContext, resolveContext } from './context.js';
 import { getPluginEntry, getPluginName } from './packageJsonHelpers.js';
+import { promiseExec, getDirname } from './pluginCliHelper.js';
 
 /**
  * @typedef {Object} HostingOptions
@@ -16,11 +15,6 @@ import { getPluginEntry, getPluginName } from './packageJsonHelpers.js';
  * @property {number} [port]
  * @property {boolean} [https]
  */
-
-/**
- * @type {(arg1: string, opt?: Object) => Promise<string>}
- */
-const promiseExec = promisify(exec);
 
 /**
  * @param {...string} pathSegments
@@ -37,13 +31,6 @@ export function checkReservedDirectories() {
         logger.warning(`found reserved directory ${dir}. serving my not work as exptected`);
       }
     });
-}
-
-/**
- * @returns {string}
- */
-export function getDirname() {
-  return path.dirname(fileURLToPath(import.meta.url));
 }
 
 /**

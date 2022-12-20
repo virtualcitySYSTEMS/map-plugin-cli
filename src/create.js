@@ -2,14 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import prompts from 'prompts';
 import semver from 'semver';
-import util from 'util';
-import childProcess from 'child_process';
+import tar from 'tar';
 import { logger } from '@vcsuite/cli-logger';
 import { LicenseType, writeLicense } from './licenses.js';
-import { getDirname } from './hostingHelpers.js';
-
-export const { version, name } = JSON.parse(fs.readFileSync(path.join(getDirname(), '..', 'package.json')).toString());
-const exec = util.promisify(childProcess.exec);
+import { DepType, installDeps } from './packageJsonHelpers.js';
+import { updatePeerDependencies } from './update.js';
+import { name, version, promiseExec, getDirname } from './pluginCliHelper.js';
 
 /**
  * @typedef {Object} PluginTemplateOptions
@@ -20,77 +18,120 @@ const exec = util.promisify(childProcess.exec);
  * @property {string} author
  * @property {string} repository
  * @property {string} license
+ * @property {string} template
  * @property {Array<string>} peerDeps
+ * @property {boolean} gitlabCi
  */
 
 /**
- * @enum {number}
- */
-const DepType = {
-  DEP: 1,
-  PEER: 2,
-  DEV: 3,
-};
-
-/**
- * @param {Array<string>} deps
- * @param {DepType} type
+ * @param {string} pluginName
  * @param {string} pluginPath
- * @returns {Promise<void>}
+ * @param {string[]} filter - files or dirs to be extracted
  */
-async function installDeps(deps, type, pluginPath) {
-  let save = '--save';
-  if (type === DepType.PEER) {
-    save = '--save-peer';
-  } else if (type === DepType.DEV) {
-    save = '--save-dev';
+async function downloadAndExtractPluginTar(pluginName, pluginPath, filter = undefined) {
+  const logMsg = filter ? filter.join(', ') : pluginName;
+  logger.spin(`Downloading and extracting ${logMsg}`);
+  const { stdout: packOut, stderr: packErr } = await promiseExec(`npm pack ${pluginName} --quiet`, { cwd: pluginPath });
+  logger.error(packErr);
+
+  const tarName = packOut.trim();
+  const tarPath = path.join(pluginPath, tarName);
+  const extractOptions = {
+    file: tarPath,
+    cwd: pluginPath,
+    strip: 1,
+  };
+  if (filter) {
+    extractOptions.filter = entryPath => filter.some(f => entryPath.includes(f));
   }
-  const installCmd = `npm i ${save} ${deps.join(' ')}`;
-  const { stdout, stderr } = await exec(installCmd, { cwd: pluginPath });
-  logger.log(stdout);
-  logger.error(stderr);
+  await tar.x(extractOptions);
+  await fs.promises.rm(tarPath);
+  logger.success(`Downloaded and extracted template ${logMsg}`);
+  logger.stopSpinner();
 }
 
 /**
- * @param {Array<string>} deps
- * @param {string} pluginPath
- * @returns {Promise<void>}
- */
-async function setUiPeerDepVersions(deps, pluginPath) {
-  const uiPackageJsonContent = await fs.promises.readFile(
-    path.join(pluginPath, 'node_modules', '@vcmap', 'ui', 'package.json'),
-  );
-  const uiPackageJson = JSON.parse(uiPackageJsonContent);
-  deps.forEach((dep, index) => {
-    if (uiPackageJson.peerDependencies[dep]) {
-      deps[index] = `${dep}@${uiPackageJson.peerDependencies[dep]}`;
-    }
-  });
-}
-
-/**
+ * Copies an existing plugin as template and edits package.json
  * @param {PluginTemplateOptions} options
+ * @param {string} pluginPath
+ * @returns {Promise<void>}
  */
-async function createPluginTemplate(options) {
-  if (!options.name) {
-    logger.error('please provide a plugin name as input parameter');
-    process.exit(1);
-  }
-  logger.info(`creating new plugin: ${options.name}`);
+async function copyPluginTemplate(options, pluginPath) {
+  await downloadAndExtractPluginTar(options.template, pluginPath);
 
-  const pluginPath = path.join(process.cwd(), options.name);
-  if (fs.existsSync(pluginPath)) {
-    logger.error('plugin with the provided name already exists');
-    process.exit(1);
+  const pluginPackageJson = JSON.parse((await fs.promises.readFile(path.join(pluginPath, 'package.json'))).toString());
+  const userPackageJson = {
+    name: options.name,
+    version: options.version,
+    description: options.description,
+    author: options.author,
+    license: options.license,
+  };
+  const packageJson = { ...pluginPackageJson, ...userPackageJson };
+  if (options.repository) {
+    packageJson.repository = {
+      url: options.repository,
+    };
+  } else {
+    delete options.repository;
   }
 
-  await fs.promises.mkdir(pluginPath);
-  await fs.promises.mkdir(path.join(pluginPath, 'plugin-assets'));
-  logger.debug('created plugin directory');
+  const writePackagePromise = fs.promises.writeFile(
+    path.join(pluginPath, 'package.json'),
+    JSON.stringify(packageJson, null, 2),
+  );
+
+  const configJson = JSON.parse((await fs.promises.readFile(path.join(pluginPath, 'config.json'))).toString());
+  configJson.name = options.name;
+
+  const writeConfigPromise = fs.promises.writeFile(
+    path.join(pluginPath, 'config.json'),
+    JSON.stringify(configJson, null, 2),
+  );
+
+  await Promise.all([
+    writePackagePromise,
+    writeConfigPromise,
+  ]);
+  logger.debug('created plugin template');
+
+  try {
+    await updatePeerDependencies(packageJson.peerDependencies, pluginPath);
+    logger.spin('installing dependencies... (this may take a while)');
+    if (packageJson.dependencies) {
+      const deps = Object.entries(packageJson.dependencies)
+        .map(([depName, depVersion]) => `${depName}@${depVersion}`);
+      await installDeps(deps, DepType.DEP, pluginPath);
+    }
+    await installDeps([`${name}@${version}`], DepType.DEV, pluginPath);
+    logger.success('Installed dependencies');
+  } catch (e) {
+    logger.error(e);
+    logger.failure('Failed installing dependencies');
+  }
+  logger.stopSpinner();
+}
+
+/**
+ * Creates a plugin from scratch
+ * @param {PluginTemplateOptions} options
+ * @param {string} pluginPath
+ */
+async function createPluginTemplate(options, pluginPath) {
+  const installVitest = options.scripts && options.scripts.find(script => script.test);
+  if (!installVitest) {
+    options.scripts.push({ test: 'echo "Error: no test specified" && exit 1' });
+  } else {
+    options.scripts.push(
+      { coverage: 'vitest run --coverage' },
+    );
+  }
+
   const packageJson = {
     name: options.name,
     version: options.version,
     description: options.description,
+    type: 'module',
     main: 'src/index.js',
     scripts: Object.assign({ prepublishOnly: 'vcmplugin build' }, ...options.scripts),
     author: options.author,
@@ -142,6 +183,66 @@ async function createPluginTemplate(options) {
     JSON.stringify(configJson, null, 2),
   );
 
+  await fs.promises.mkdir(path.join(pluginPath, 'src'));
+  logger.debug('created src directory');
+
+  const copyIndexPromise = fs.promises.copyFile(
+    path.join(getDirname(), '..', 'assets', 'index.js'),
+    path.join(pluginPath, 'src', 'index.js'),
+  );
+
+  await Promise.all([
+    writePackagePromise,
+    writeConfigPromise,
+    copyIndexPromise,
+  ]);
+
+  if (installVitest) {
+    logger.debug('setting up test environment');
+    await downloadAndExtractPluginTar('@vcmap/hello-world', pluginPath, ['tests', 'vitest.config.js']);
+  }
+
+  try {
+    const peerDependencies = options.peerDeps.reduce((obj, key) => ({ ...obj, [key]: 'latest' }), {});
+    await updatePeerDependencies(peerDependencies, pluginPath);
+    logger.spin('installing dependencies... (this may take a while)');
+    const devDeps = [`${name}@${version}`];
+    if (installEsLint) {
+      devDeps.push('@vcsuite/eslint-config');
+    }
+    if (installVitest) {
+      devDeps.push('vite', 'vitest', '@vitest/coverage-c8', 'jest-canvas-mock', 'jsdom');
+    }
+    await installDeps(devDeps, DepType.DEV, pluginPath);
+    logger.success('Installed dependencies');
+  } catch (e) {
+    logger.error(e);
+    logger.failure('Failed installing dependencies');
+  }
+  logger.stopSpinner();
+}
+
+/**
+ * Creates a new plugin either by copying a template or from scratch
+ * @param {PluginTemplateOptions} options
+ */
+async function createPlugin(options) {
+  if (!options.name) {
+    logger.error('please provide a plugin name as input parameter');
+    process.exit(1);
+  }
+  logger.debug(`creating new plugin: ${options.name}`);
+
+  const pluginPath = path.join(process.cwd(), options.name);
+  if (fs.existsSync(pluginPath)) {
+    logger.error('plugin with the provided name already exists');
+    process.exit(1);
+  }
+
+  await fs.promises.mkdir(pluginPath);
+  await fs.promises.mkdir(path.join(pluginPath, 'plugin-assets'));
+  logger.debug('created plugin directory');
+
   const writeNpmrcPromise = fs.promises.writeFile(
     path.join(pluginPath, '.npmrc'),
     'registry=https://registry.npmjs.org\n',
@@ -160,49 +261,44 @@ async function createPluginTemplate(options) {
     `# v${options.version}\nDocument features and fixes`,
   );
 
-  await fs.promises.mkdir(path.join(pluginPath, 'src'));
-  logger.debug('created src directory');
-
-  const copyTemplatePromise = fs.promises.cp(
-    path.join(getDirname(), '..', 'assets', 'helloWorld'),
-    pluginPath,
-    { recursive: true },
+  const copyGitIgnorePromise = fs.promises.copyFile(
+    path.join(getDirname(), '..', 'assets', 'gitignore'),
+    path.join(pluginPath, '.gitignore'),
   );
 
   await Promise.all([
-    writePackagePromise,
-    writeConfigPromise,
     writeNpmrcPromise,
     writeReadmePromise,
     writeChangesPromise,
-    copyTemplatePromise,
     writeLicense(options.author, options.license, pluginPath),
+    copyGitIgnorePromise,
   ]);
 
-
-  logger.spin('installing dependencies... (this may take a while)');
-  try {
-    await installDeps(['@vcmap/ui'], DepType.PEER, pluginPath);
-    await setUiPeerDepVersions(options.peerDeps, pluginPath);
-    await installDeps(options.peerDeps, DepType.PEER, pluginPath);
-    const devDeps = [`${name}@${version}`];
-    if (installEsLint) {
-      devDeps.push('@vcsuite/eslint-config');
-    }
-    await installDeps(devDeps, DepType.DEV, pluginPath);
-    logger.success('installed dependencies');
-  } catch (e) {
-    logger.error(e);
-    logger.failure('installed dependencies');
+  if (options.gitlabCi) {
+    await fs.promises.copyFile(
+      path.join(getDirname(), '..', 'assets', '.gitlab-ci.yml'),
+      path.join(pluginPath, '.gitlab-ci.yml'),
+    );
   }
-  logger.stopSpinner();
-  logger.success('created plugin');
+
+  if (options.template) {
+    await copyPluginTemplate(options, pluginPath);
+  } else {
+    await createPluginTemplate(options, pluginPath);
+  }
+  logger.success(`Created plugin ${options.name}`);
 }
 
 /**
  * @returns {Promise<void>}
  */
 export default async function create() {
+  const templateChoices = [
+    { title: 'no template (basic structure)', value: null },
+    { title: 'hello-world', value: '@vcmap/hello-world' },
+    // to add further templates add a choice here
+  ];
+
   const scriptChoices = [
     { title: 'build', value: { build: 'vcmplugin build' }, selected: true },
     { title: 'pack', value: { pack: 'vcmplugin pack' }, selected: true },
@@ -210,6 +306,7 @@ export default async function create() {
     { title: 'preview', value: { preview: 'vcmplugin preview' }, selected: true },
     { title: 'buildStagingApp', value: { buildStagingApp: 'vcmplugin buildStagingApp' }, selected: true },
     { title: 'lint', value: { lint: 'eslint "{src,tests}/**/*.{js,vue}"' }, selected: true },
+    { title: 'test', value: { test: 'vitest' }, selected: true },
   ];
 
   const peerDependencyChoices = [
@@ -229,7 +326,6 @@ export default async function create() {
         if (!value) {
           return false;
         }
-
         if (fs.existsSync(path.join(process.cwd(), value))) {
           return `Directory ${value} already exists`;
         }
@@ -248,13 +344,6 @@ export default async function create() {
       name: 'description',
       message: 'Description',
       initial: '',
-    },
-    {
-      type: 'multiselect',
-      message: 'Add the following scripts to the package.json.',
-      name: 'scripts',
-      choices: scriptChoices,
-      hint: '- Space to select. Enter to submit',
     },
     {
       type: 'text',
@@ -280,15 +369,37 @@ export default async function create() {
         })),
     },
     {
+      type: 'select',
+      name: 'template',
+      message: 'Choose an existing plugin as template',
+      initial: 0,
+      choices: templateChoices,
+    },
+    {
+      type: (prev, values) => (!values.template ? 'multiselect' : null),
+      message: 'Add the following scripts to the package.json.',
+      name: 'scripts',
+      choices: scriptChoices,
+      hint: '- Space to select. Enter to submit',
+    },
+    {
+      type: (prev, values) => (!values.template ? 'multiselect' : null),
       name: 'peerDeps',
-      type: 'multiselect',
       message: 'Add the following peer dependencies to the package.json.',
       choices: peerDependencyChoices,
       hint: '- Space to select. Enter to submit',
+    },
+    {
+      type: 'toggle',
+      name: 'gitlabCi',
+      message: 'Add gitlab-ci.yml?',
+      initial: false,
+      active: 'yes',
+      inactive: 'no',
     },
   ];
 
   const answers = await prompts(questions, { onCancel() { process.exit(0); } });
 
-  await createPluginTemplate(answers);
+  await createPlugin(answers);
 }

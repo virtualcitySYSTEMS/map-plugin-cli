@@ -4,5 +4,6 @@ export { default as build } from './src/build.js';
 export { default as pack } from './src/pack.js';
 export { default as preview } from './src/preview.js';
 export { default as buildStagingApp } from './src/buildStagingApp.js';
+export { default as update } from './src/update.js';
 export { default as setupMapUi } from './src/setupMapUi.js';
 

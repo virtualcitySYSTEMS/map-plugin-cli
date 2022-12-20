@@ -10,7 +10,8 @@ import {
   addPluginAssets,
   checkReservedDirectories,
   createConfigJsonReloadPlugin,
-  printVcmapUiVersion, resolveMapUi,
+  printVcmapUiVersion,
+  resolveMapUi,
 } from './hostingHelpers.js';
 import build, { getDefaultConfig, getLibraryPaths } from './build.js';
 import { getContext } from './context.js';

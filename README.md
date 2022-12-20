@@ -5,11 +5,13 @@
 > For documentation on version 1 compatible with VC Map v4, see [this tag](https://github.com/virtualcitySYSTEMS/map-plugin-cli/tree/v1.1.1)
 > and be sure to install using `npm i -g @vcmap/plugin-cli@^1.1.0`** 
 
-The `vcmplugin` cli helps develop and build plugins for the **VC Map**.
+The `@vcmap/plugin-cli` helps develop and build plugins for the **VC Map**.
 
 ## Features
 
 - Creating basic plugin structure
+  - from scratch
+  - from an existing plugin [@vcmap/hello-world](https://www.npmjs.com/package/@vcmap/hello-world) used as template
 - Providing plugin development server
 - Building plugins for production
 
@@ -42,12 +44,14 @@ to execute CLI commands.
 
 ### 1. Creating a new plugin
 
-To create a new plugin template, run the following within your projects root:
+To create a new plugin template, run the following:
 ```
 vcmplugin create
 ```
-This will open a command prompt helping you to create the basic [structure of a plugin](https://github.com/virtualcitySYSTEMS/map-plugin-examples/blob/main/doc/VCM_Plugin.md#2-structure-of-a-plugin).
-Be sure to check out the [peer dependecy section](#about_peer_dependencies) as well.
+This will open a command prompt helping you to create the basic [structure of a plugin](#vc-map-plugins).
+Be sure to check out the [peer dependecy section](#about-peer-dependencies) as well.
+
+Optionally, in step 7 of the create-prompt you can choose an existing plugin [@vcmap/hello-world](https://www.npmjs.com/package/@vcmap/hello-world) as template.
 
 ### 2. Serving a plugin for development
 
@@ -56,7 +60,7 @@ To serve your plugin in dev mode, run the following within your projects root:
 npx vcmplugin serve
 ```
 The dev mode gives you complete debug information on all integrated libraries (@vcmap/core, ol etc.)
-By default this command will launch a dev server at localhost:8008 using 
+By default, this command will launch a dev server at localhost:8008 using 
 the @vcmap/ui peer dependency package of your plugin as its base.
 You can provide an alternate map config if you wish.
 
@@ -122,15 +126,16 @@ npx vcmplugin pack
 This will create a folder `dist` with a zip file containing your bundled code and assets.
 To use the plugin productively in a hosted map, 
 unzip this file on your server to `{vcm-root}/plugins` and add 
-an entry to your VC MAP [config](#2-config) plugins section. This zip file can also be unzipped
+an entry to your VC MAP `config` plugins section. This zip file can also be unzipped
 in the VC Publishers `plugins` public directory.
 
 ## About Peer Dependencies
-The @vcmap/ui uses some _very large libraries_, notably `CesiumJS`. To reduce the amount
+The [@vcmap/ui](https://github.com/virtualcitySYSTEMS/map-ui) uses some _very large libraries_, notably `CesiumJS`. To reduce the amount
 of traffic generated for loading plugins, all large libraries (see the list below), 
-are _provided_ in production (instead of bundling them into every plugin). This a) guarantees
-a certain amount of type safety (using the @vcsuite/check parameter assertation library for instance),
-b) reduces the amount of traffic required to load an application and c) leverages browser
+are _provided_ in production (instead of bundling them into every plugin). This 
+a) guarantees a certain amount of type safety (using the [@vcsuite/check](https://www.npmjs.com/package/@vcsuite/check) parameter assertion library for instance),
+b) reduces the amount of traffic required to load an application and
+c) leverages browser
 caching more readily.
 
 The following libraries are provided by the @vcmap/ui in a deployed application. You should define these
@@ -141,7 +146,14 @@ as peer dependencies if you use them in your plugin:
 - vue
 - vuetify
 
-During the build step, these libraries are automatically externalized by the vcmplugin-cli and in
+If you want to update your plugin to a newer version of `@vcmap/ui`, the `@vcmap/plugin-cli` provides a update tool.
+Just change to your plugin's directory and run:
+```bash
+vcmplugin update
+```
+This will automatically update all peer dependencies defined in your plugin to the corresponding version of the latest `@vcmap/ui`.
+
+During the build step, these libraries are automatically externalized by the `@vcmap/plugin-cli` and in
 production all plugins & the map core _share_ the same cesium library.
 
 But, to make this work, it is important to define these dependencies as _peer dependencies_ of
@@ -161,7 +173,7 @@ import { Cartesian3 } from '@vcmap/cesium';
 openlayers provides a special case, since its modules do not provide a _flat_ namespace.
 To circumvent this limitation, _the @vcmap/ui provides a flat namespaced ol.js_ and a mechanic
 to rewrite openlayers imports. This is automatically applied by the `@vcmap/rollup-plugin-vcs-ol`
-used by the vcmplugin-cli build step. So openlayers imports can be written as:
+used by the `@vcmap/plugin-cli` build step. So openlayers imports can be written as:
 ```js
 import Feature from 'ol/Feature.js';
 ```
@@ -192,7 +204,7 @@ to create your project, a template already adhering to these specs will be creat
 - Plugin dependencies have to be defined in the `package.json`.
     - `dependency`: all plugin specific dependencies NOT provided by the `@vcmap/ui`.
     - `peerDependency`: dependencies provided by the `@vcmap/ui`, 
-    - e.g. `@vcmap/core` or `@vcmap/ui` (see [About Peer Dependencies](#About-Peer-Dependencies) for more details)
+      - e.g. `@vcmap/core` or `@vcmap/ui` (see [About Peer Dependencies](#About-Peer-Dependencies) for more details)
     - `devDependency`: all dependencies only required for development, e.g. `eslint`.
 - Plugins can be published to NPM, but should contain both source and minified code 
 to allow seamless integration into the [VC Map UI](https://github.com/virtualcitySYSTEMS/map-ui) environment.
@@ -305,7 +317,15 @@ cannot handle css resources.
 If you have to access assets _before_ your plugin is created (in the exported function of
 your plugin code), you will have to use the `baseUrl` provided to you to generate the URL yourself.
 
+## About testing plugins
+
+To test your plugin's API you can use [vitest](https://vitest.dev/).
+The `@vcmap/hello-world` plugin contains a basic setup of a test environment including example spec using vitest. 
+You will find the required setup in your created plugin, if you chose to add `test` as script to your `package.json` during the create-prompt.
+
+As for now, we don't do any components testing.
+
 ## Notes on Developing
 To develop the plugin-cli, be sure to not `npm link` into plugins, since this will
 throw the resolver in resolving the @vcmap/ui peer dependency from the current plugin. 
-Instead run `npm pack` in the plugin cli and install the tarball in the plugin directly.
+Instead, run `npm pack` in the plugin cli and install the tarball in the plugin directly.

@@ -1,5 +1,7 @@
 import fs from 'fs';
+import { logger } from '@vcsuite/cli-logger';
 import { resolveContext } from './context.js';
+import { promiseExec } from './pluginCliHelper.js';
 
 /** @type {Object|null} */
 let packageJson = null;
@@ -7,7 +9,7 @@ let packageJson = null;
 /**
  * @returns {Promise<Object>}
  */
-async function getPackageJson() {
+export async function getPackageJson() {
   if (!packageJson) {
     const packageJsonFileName = resolveContext('package.json');
     if (!fs.existsSync(packageJsonFileName)) {
@@ -46,3 +48,34 @@ export async function getPluginEntry() {
   return entry;
 }
 
+/**
+ * @enum {number}
+ */
+export const DepType = {
+  DEP: 1,
+  PEER: 2,
+  DEV: 3,
+};
+
+/**
+ * @param {Array<string>} deps
+ * @param {DepType} type
+ * @param {string} pluginPath
+ * @returns {Promise<void>}
+ */
+export async function installDeps(deps, type, pluginPath) {
+  if (deps.length < 1) {
+    return;
+  }
+  let save = '--save';
+  if (type === DepType.PEER) {
+    save = '--save-peer';
+  } else if (type === DepType.DEV) {
+    save = '--save-dev';
+  }
+  const installCmd = `npm i ${save} ${deps.join(' ')}`;
+  logger.debug(installCmd);
+  const { stdout, stderr } = await promiseExec(installCmd, { cwd: pluginPath });
+  logger.log(stdout);
+  logger.error(stderr);
+}

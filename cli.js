@@ -2,9 +2,9 @@
 import program from 'commander';
 import './src/defaultCommand.js';
 import {
-  create, serve, build, pack, preview,
+  create, serve, build, pack, preview, update,
 } from './index.js';
-import { version } from './src/create.js';
+import { version } from './src/pluginCliHelper.js';
 import setupMapUi from './src/setupMapUi.js';
 import buildStagingApp from './src/buildStagingApp.js';
 
@@ -56,5 +56,10 @@ program
 program
   .command('setup-map-ui')
   .safeAction(setupMapUi);
+
+program
+  .command('update')
+  .defaultOptions()
+  .safeAction(update);
 
 program.parse(process.argv);
