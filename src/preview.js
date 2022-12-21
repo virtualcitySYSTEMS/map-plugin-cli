@@ -16,6 +16,7 @@ import {
 import build, { getDefaultConfig, getLibraryPaths } from './build.js';
 import { getContext } from './context.js';
 import setupMapUi from './setupMapUi.js';
+import { getVcmConfigJs } from './pluginCliHelper.js';
 
 /**
  * @typedef {HostingOptions} PreviewOptions
@@ -62,7 +63,7 @@ async function getServerOptions(hostedVcm, https) {
       alias,
     },
     server: {
-      middlewareMode: 'html',
+      middlewareMode: true,
       proxy,
       https,
     },
@@ -74,20 +75,22 @@ async function getServerOptions(hostedVcm, https) {
  * @returns {Promise<void>}
  */
 export default async function preview(options) {
-  if (!options.vcm) {
+  const { default: vcmConfigJs } = await getVcmConfigJs();
+  const mergedOptions = { ...vcmConfigJs, ...options };
+  if (!mergedOptions.vcm) {
     await printVcmapUiVersion();
   }
   checkReservedDirectories();
   await build({ development: false, watch: true });
   const app = express();
   logger.info('Starting preview server...');
-  const server = await createServer(await getServerOptions(options.vcm, options.https));
+  const server = await createServer(await getServerOptions(mergedOptions.vcm, mergedOptions.https));
 
-  addMapConfigRoute(app, options.vcm ? `${options.vcm}/map.config.json` : null, options.auth, options.config, true);
-  addIndexRoute(app, server, true, options.vcm, options.auth);
+  addMapConfigRoute(app, mergedOptions.vcm ? `${mergedOptions.vcm}/map.config.json` : null, mergedOptions.auth, mergedOptions.config, true);
+  addIndexRoute(app, server, true, mergedOptions.vcm, mergedOptions.auth);
   addPluginAssets(app, 'dist');
 
-  if (!options.vcm) {
+  if (!mergedOptions.vcm) {
     logger.spin('compiling preview');
     if (!fs.existsSync(resolveMapUi('plugins', 'node_modules'))) {
       logger.info('Could not detect node_modules in map ui plugins. Assuming map UI not setup');
@@ -99,12 +102,12 @@ export default async function preview(options) {
     logger.info('@vcmap/ui built for preview');
     app.use('/assets', express.static(path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'assets')));
     app.use('/plugins', express.static(path.join(getContext(), 'dist', 'plugins')));
-    await addConfigRoute(app, options.auth, options.config, true);
+    await addConfigRoute(app, mergedOptions.auth, mergedOptions.config, true);
   }
 
   app.use(server.middlewares);
 
-  const port = options.port || 5005;
+  const port = mergedOptions.port || 5005;
   await app.listen(port);
   logger.info(`Server running on port ${port}`);
 }

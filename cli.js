@@ -25,13 +25,6 @@ program
   .defaultOptions()
   .defaultServeOptions()
   .option('--vcm [url]', 'URL to a virtualcityMAP application', val => val.replace(/\/$/, ''))
-  .option('--proxyRoute <route>', 'a route to proxy as well (e.g. if you have additional proxies on your server)', (val, prev) => {
-    if (!prev) {
-      return [val];
-    }
-    prev.push(val);
-    return prev;
-  }, [])
   .safeAction(preview);
 
 program

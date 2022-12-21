@@ -15,6 +15,7 @@ import {
   resolveMapUi,
 } from './hostingHelpers.js';
 import { getPluginName } from './packageJsonHelpers.js';
+import { getVcmConfigJs } from './pluginCliHelper.js';
 
 /**
  * @typedef {HostingOptions} ServeOptions
@@ -67,13 +68,15 @@ export default async function serve(options) {
     logger.error('Can only serve in dev mode, if the map ui is a dependency of the current context');
     return;
   }
+  const { default: vcmConfigJs } = await getVcmConfigJs();
+  const mergedOptions = { ...vcmConfigJs, ...options };
   await printVcmapUiVersion();
   checkReservedDirectories();
   const app = express();
-  const port = options.port || 8008;
+  const port = mergedOptions.port || 8008;
 
   logger.info('Starting development server...');
-  const proxy = await getProxy(options.https ? 'https' : 'http', port);
+  const proxy = await getProxy(mergedOptions.https ? 'https' : 'http', port);
 
   const server = await createServer({
     root: getContext(),
@@ -98,8 +101,8 @@ export default async function serve(options) {
     ],
     server: {
       middlewareMode: true,
-      https: options.https,
-      proxy,
+      https: mergedOptions.https,
+      proxy: { ...mergedOptions.proxy, ...proxy },
     },
     css: {
       preprocessorOptions: {
@@ -110,10 +113,10 @@ export default async function serve(options) {
     },
   });
 
-  addMapConfigRoute(app, options.mapConfig, options.auth, options.config);
+  addMapConfigRoute(app, mergedOptions.mapConfig, mergedOptions.auth, mergedOptions.config);
   addIndexRoute(app, server);
   addPluginAssets(app, 'src');
-  await addConfigRoute(app, options.auth, options.config);
+  await addConfigRoute(app, mergedOptions.auth, mergedOptions.config);
 
   app.use(server.middlewares);
 

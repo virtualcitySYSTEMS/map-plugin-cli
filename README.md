@@ -42,6 +42,10 @@ its current major version. You can then use either the scripts defined
 by the template in your package.json `npm start`, `npm run pack` etc. or `npx`
 to execute CLI commands.
 
+All commands have (optional) cli options. Run `vcmplugin --help` or `vcmplugin help [command]` for more information.
+For `serve` and `preview` you can alternatively define a `vcs.config.js` in your plugin's root directory. 
+For more information see [here](#vcm-config-js).
+
 ### 1. Creating a new plugin
 
 To create a new plugin template, run the following:
@@ -128,6 +132,38 @@ To use the plugin productively in a hosted map,
 unzip this file on your server to `{vcm-root}/plugins` and add 
 an entry to your VC MAP `config` plugins section. This zip file can also be unzipped
 in the VC Publishers `plugins` public directory.
+
+## vcm config js
+
+The `@vcmap/plugin-cli` supports an optional configuration file, which can be used for the commands `serve` and `preview`.
+It's an alternative to providing cli parameters (which will still have precedence) and even has a few extra feature like proxy.
+This can be helpful, if you want to share specific parameters valid for a specific plugin.
+In order to do so just save a `vcm.config.js` in your plugin's root directory.
+This file has to return a js object as default export.
+
+Example `vcm.config.js` defining proxy and port:
+```js
+export default {
+  // server.proxy see https://vitejs.dev/config/server-options.html#server-proxy
+  proxy: {
+    // string shorthand: http://localhost:8008/foo -> https://vc.systems/foo
+    '/foo': 'https://vc.systems',
+  },
+  port: 5005,
+}
+```
+
+The following parameters are valid:
+
+| parameter | type    | description                                                                                   |
+|-----------|---------|-----------------------------------------------------------------------------------------------|
+| config    | string  | an optional fileName to use for configuring the plugin                                        |
+| port      | number  | optional alternative port (default 8008)                                                      |
+| https     | boolean | wether to use http (default) or https                                                         |
+| mapConfig | string  | a filename or URL to a map config (for `serve` command)                                       |
+| vcm       | string  | a filename or URL to a map (for `preview` command)                                            |
+| proxy     | Object  | a server proxy (see [vitejs.dev](https://vitejs.dev/config/server-options.html#server-proxy)) |
+
 
 ## About Peer Dependencies
 The [@vcmap/ui](https://github.com/virtualcitySYSTEMS/map-ui) uses some _very large libraries_, notably `CesiumJS`. To reduce the amount

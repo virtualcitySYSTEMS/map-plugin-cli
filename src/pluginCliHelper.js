@@ -2,7 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import util from 'util';
 import childProcess from 'child_process';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { logger } from '@vcsuite/cli-logger';
+import { getContext } from './context.js';
 
 /**
  * @returns {string}
@@ -21,3 +23,19 @@ export const { version, name } = JSON.parse(fs.readFileSync(path.join(getDirname
  * @type {(arg1: string) => Promise<string>}
  */
 export const promiseExec = util.promisify(childProcess.exec);
+
+export async function getVcmConfigJs() {
+  let vcmConfigJs = {};
+  const vcmConfigJsPath = path.resolve(getContext(), 'vcm.config.js');
+  if (!fs.existsSync(vcmConfigJsPath)) {
+    logger.debug(`${vcmConfigJsPath} not existing!`);
+    return vcmConfigJs;
+  }
+  try {
+    vcmConfigJs = await import(pathToFileURL(vcmConfigJsPath));
+    logger.info('Using vcm.config.js found in current project.');
+  } catch (err) {
+    logger.error(err);
+  }
+  return vcmConfigJs;
+}
