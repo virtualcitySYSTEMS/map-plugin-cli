@@ -17,7 +17,7 @@ export async function updatePeerDependencies(pluginPeer, pluginPath) {
     const pluginPeerDeps = Object.keys(pluginPeer)
       .filter(depName => !!mapPeer[depName] && pluginPeer[depName] !== mapPeer[depName])
       .map(depName => `${depName}@${mapPeer[depName]}`);
-    peerDeps.push(pluginPeerDeps);
+    peerDeps.push(...pluginPeerDeps);
   }
   logger.spin('Updating peer dependencies');
   await installDeps(peerDeps, DepType.PEER, pluginPath);
