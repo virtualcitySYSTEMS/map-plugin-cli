@@ -1,10 +1,12 @@
 import path from 'path';
-import fs from 'fs/promises';
+import { rm, mkdir } from 'fs/promises';
+import fs from 'fs';
 import { createVuePlugin } from 'vite-plugin-vue2';
 import vcsOl from '@vcmap/rollup-plugin-vcs-ol';
 import { logger } from '@vcsuite/cli-logger';
 import { getPluginEntry, getPluginName } from './packageJsonHelpers.js';
 import { getContext } from './context.js';
+import { executeUiNpm, resolveMapUi } from './hostingHelpers.js';
 
 /**
  * @typedef {Object} BuildOptions
@@ -55,8 +57,8 @@ export default async function buildModule(options) {
   const libraryPaths = await getLibraryPaths(pluginName);
   const distPath = path.join(getContext(), 'dist');
   if (!options.keepDistFolder) {
-    await fs.rm(distPath, { recursive: true, force: true });
-    await fs.mkdir(distPath);
+    await rm(distPath, { recursive: true, force: true });
+    await mkdir(distPath);
   }
   const external = Object.keys(libraryPaths);
   const config = {
@@ -88,4 +90,21 @@ export default async function buildModule(options) {
   };
   const { buildLibrary } = await import('@vcmap/ui/build/buildHelpers.js');
   await buildLibrary(config, options.outputPath ?? '', 'index', '', true);
+}
+
+/**
+ * Builds the @vcmap/ui dependency and removes its own core dependency
+ * @returns {Promise<void>}
+ */
+export async function buildMapUI() {
+  logger.spin('building @vcmap/ui dependency');
+  await executeUiNpm('--production=false --no-package-lock', 'install');
+  // remove own core dependency to allow linking core via git+ssh
+  const coreDepPath = resolveMapUi('node_modules', '@vcmap', 'core');
+  if (fs.existsSync(coreDepPath)) {
+    await rm(coreDepPath, { recursive: true, force: true });
+  }
+  await executeUiNpm('build');
+  logger.stopSpinner();
+  logger.info('@vcmap/ui built');
 }

@@ -13,7 +13,7 @@ import {
   printVcmapUiVersion,
   resolveMapUi,
 } from './hostingHelpers.js';
-import build, { getDefaultConfig, getLibraryPaths } from './build.js';
+import build, { buildMapUI, getDefaultConfig, getLibraryPaths } from './build.js';
 import { getContext } from './context.js';
 import setupMapUi from './setupMapUi.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
@@ -79,6 +79,10 @@ export default async function preview(options) {
   const mergedOptions = { ...vcmConfigJs, ...options };
   if (!mergedOptions.vcm) {
     await printVcmapUiVersion();
+    // In case @vcmap/ui is linked via git+ssh, dist folder is not available and must be built first
+    if (!fs.existsSync(resolveMapUi('dist'))) {
+      await buildMapUI();
+    }
   }
   checkReservedDirectories();
   await build({ development: false, watch: true });
