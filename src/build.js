@@ -32,12 +32,12 @@ export function getDefaultConfig() {
  */
 export async function getLibraryPaths(pluginName) {
   const { libraries } = await import('@vcmap/ui/build/buildHelpers.js');
-  const pluginPath = path.join('plugins', ...pluginName.split('/'));
+  const pluginPath = path.posix.join('plugins', ...pluginName.split('/'));
   const libraryPaths = {};
   Object.entries(libraries).forEach(([library, assetName]) => {
-    const assetPath = path.join('assets', `${assetName}.js`);
+    const assetPath = path.posix.join('assets', `${assetName}.js`);
 
-    libraryPaths[library] = path.relative(pluginPath, assetPath);
+    libraryPaths[library] = path.posix.relative(pluginPath, assetPath);
   });
   return libraryPaths;
 }
