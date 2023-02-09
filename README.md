@@ -177,7 +177,7 @@ caching more readily.
 The following libraries are provided by the @vcmap/ui in a deployed application. You should define these
 as peer dependencies if you use them in your plugin:
 - @vcmap/core
-- @vcmap/cesium
+- @vcmap-cesium/engine
 - ol
 - vue
 - vuetify
@@ -197,12 +197,12 @@ a plugin and _that the provided index files_ are used (over directly importing f
 
 For instance: 
 ```js
-import Cartesian3 from '@vcmap/cesium/Source/Core/Cartesian3.js';
+import Cartesian3 from '@vcmap-cesium/engine/Source/Core/Cartesian3.js';
 ```
 
 should be rewritten to:
 ```js
-import { Cartesian3 } from '@vcmap/cesium';
+import { Cartesian3 } from '@vcmap-cesium/engine';
 ```
 
 ### What about openlayers?

@@ -57,6 +57,11 @@ async function getProxy(protocol, port) {
     changeOrigin: true,
     secure: false,
   };
+  // Cesium engine assets are not part of Build
+  proxy['/node_modules/@vcmap-cesium/engine/Build/Assets'] = {
+    target,
+    rewrite: p => p.replace(/Build/, 'Source'),
+  };
   return proxy;
 }
 
@@ -97,7 +102,7 @@ export default async function serve(options) {
         'fast-deep-equal',
         'rbush-knn',
         'pbf',
-        '@vcmap/cesium',
+        '@vcmap-cesium/engine',
       ],
     },
     plugins: [

@@ -311,7 +311,7 @@ export default async function create() {
 
   const peerDependencyChoices = [
     { title: '@vcmap/core', value: '@vcmap/core' },
-    { title: '@vcmap/cesium', value: '@vcmap/cesium' },
+    { title: '@vcmap-cesium/engine', value: '@vcmap-cesium/engine' },
     { title: 'ol', value: 'ol' },
     { title: 'vue', value: 'vue' },
     { title: 'vuetify', value: 'vuetify' },
