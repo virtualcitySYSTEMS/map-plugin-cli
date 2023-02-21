@@ -279,6 +279,11 @@ async function createPlugin(options) {
       path.join(getDirname(), '..', 'assets', '.gitlab-ci.yml'),
       path.join(pluginPath, '.gitlab-ci.yml'),
     );
+    await fs.promises.cp(
+      path.join(getDirname(), '..', 'assets', 'build'),
+      path.join(pluginPath, 'build'),
+      { recursive: true },
+    );
   }
 
   if (options.template) {
