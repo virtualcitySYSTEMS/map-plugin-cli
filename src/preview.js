@@ -42,7 +42,9 @@ async function getServerOptions(hostedVcm, https) {
   let proxy;
   const normalLibraries = await getLibraryPaths('normal');
   const scopedLibraries = await getLibraryPaths('@scoped/plugin');
-  const alias = {};
+  const alias = {
+    '@cesium/engine': '@vcmap-cesium/engine',
+  };
   setAliases(alias, normalLibraries);
   setAliases(alias, scopedLibraries);
 

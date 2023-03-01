@@ -211,7 +211,7 @@ async function createPluginTemplate(options, pluginPath) {
       devDeps.push('@vcsuite/eslint-config');
     }
     if (installVitest) {
-      devDeps.push('vite', 'vitest', '@vitest/coverage-c8', 'jest-canvas-mock', 'jsdom');
+      devDeps.push('vitest', '@vitest/coverage-c8', 'jest-canvas-mock', 'jsdom');
     }
     await installDeps(devDeps, DepType.DEV, pluginPath);
     logger.success('Installed dependencies');

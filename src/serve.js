@@ -91,6 +91,11 @@ export default async function serve(options) {
   const server = await createServer({
     root: getContext(),
     publicDir: false,
+    resolve: {
+      alias: {
+        '@cesium/engine': '@vcmap-cesium/engine',
+      },
+    },
     optimizeDeps: {
       exclude: [
         '@vcmap/ui',
