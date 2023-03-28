@@ -7,6 +7,7 @@ import { getConfigJson, resolveMapUi } from './hostingHelpers.js';
 import { getPluginName } from './packageJsonHelpers.js';
 import buildModule, { buildMapUI, getDefaultConfig } from './build.js';
 import setupMapUi from './setupMapUi.js';
+import { getVcmConfigJs } from './pluginCliHelper.js';
 
 
 /**
@@ -44,7 +45,8 @@ export default async function buildStagingApp() {
     path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'index.html'),
     path.join(distPath, 'index.html'),
   );
-  const config = await getConfigJson();
+  const { default: vcmConfigJs } = await getVcmConfigJs();
+  const config = await getConfigJson(vcmConfigJs.mapConfig, vcmConfigJs.auth, false, vcmConfigJs.config);
   // update Entry
   const pluginConfig = config.plugins.find(p => p.name === pluginName);
   if (pluginConfig) {

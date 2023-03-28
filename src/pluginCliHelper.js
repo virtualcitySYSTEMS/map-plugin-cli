@@ -24,6 +24,14 @@ export const { version, name } = JSON.parse(fs.readFileSync(path.join(getDirname
  */
 export const promiseExec = util.promisify(childProcess.exec);
 
+/**
+ * @typedef {ServeOptions} VcmConfigJs
+ * @property {Object} proxy - see https://vitejs.dev/config/server-options.html#server-proxy
+ */
+
+/**
+ * @returns {Promise<VcmConfigJs>}
+ */
 export async function getVcmConfigJs() {
   let vcmConfigJs = {};
   const vcmConfigJsPath = path.resolve(getContext(), 'vcm.config.js');

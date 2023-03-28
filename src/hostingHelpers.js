@@ -10,7 +10,7 @@ import { promiseExec, getDirname } from './pluginCliHelper.js';
 
 /**
  * @typedef {Object} HostingOptions
- * @property {string} [config] - an optional fileName to use for configuring the plugin
+ * @property {string|Object} [config] - an optional configObject or fileName to use for configuring the plugin
  * @property {string} [auth] - potential auth string to download assets (index.html, config) with
  * @property {number} [port]
  * @property {boolean} [https]
@@ -71,6 +71,18 @@ export async function readConfigJson(fileName) {
   return config;
 }
 
+/**
+ * @param {string} pluginConfig
+ * @returns {Promise<Object>}
+ */
+export async function getPluginConfig(pluginConfig) {
+  const isObject = typeof pluginConfig === 'object' && pluginConfig !== null;
+  if (isObject) {
+    return pluginConfig;
+  }
+  return readConfigJson(pluginConfig);
+}
+
 const configMap = new Map();
 
 /**
@@ -117,8 +129,20 @@ export function getConfigJson(mapConfig, auth, production, configFile) {
   if (configMap.has('map.config.json')) {
     return Promise.resolve(configMap.get('map.config.json'));
   }
-  const isWebVcm = /^https?:\/\//.test(usedConfig);
+  const isObject = typeof mapConfig === 'object' && mapConfig !== null;
+  const isWebVcm = !isObject && /^https?:\/\//.test(usedConfig);
   return new Promise((resolve, reject) => {
+    async function handleConfig(data) {
+      try {
+        const configJson = JSON.parse(data);
+        configMap.set('map.config.json', configJson);
+        const pluginConfig = await getPluginConfig(configFile);
+        await reWriteConfig(configJson, pluginConfig, production);
+        resolve(configJson);
+      } catch (e) {
+        reject(e);
+      }
+    }
     function handleStream(stream) {
       let data = '';
       stream.on('data', (chunk) => {
@@ -126,18 +150,12 @@ export function getConfigJson(mapConfig, auth, production, configFile) {
       });
 
       stream.on('close', async () => {
-        try {
-          const configJson = JSON.parse(data);
-          configMap.set('map.config.json', configJson);
-          const pluginConfig = await readConfigJson(configFile);
-          await reWriteConfig(configJson, pluginConfig, production);
-          resolve(configJson);
-        } catch (e) {
-          reject(e);
-        }
+        await handleConfig(data);
       });
     }
-    if (isWebVcm) {
+    if (isObject) {
+      handleConfig(JSON.stringify(mapConfig));
+    } else if (isWebVcm) {
       httpGet(usedConfig, auth, (res) => {
         if (res.statusCode < 400) {
           handleStream(res);
@@ -213,7 +231,7 @@ export function addMapConfigRoute(app, mapConfig, auth, configFile, production) 
  */
 export async function addConfigRoute(app, auth, configFileName, production) { // IDEA pass in available plugins and strip unavailable ones?
   const mapUiDir = resolveMapUi();
-  const pluginConfig = await readConfigJson(configFileName);
+  const pluginConfig = await getPluginConfig(configFileName);
 
   app.get('/config*', async (req, res) => {
     const { url } = req;

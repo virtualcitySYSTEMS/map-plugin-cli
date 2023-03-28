@@ -136,7 +136,7 @@ in the VC Publishers `plugins` public directory.
 ## vcm config js
 
 The `@vcmap/plugin-cli` supports an optional configuration file, which can be used for the commands `serve` and `preview`.
-It's an alternative to providing cli parameters (which will still have precedence) and even has a few extra feature like proxy.
+It's an alternative to providing cli parameters (which will still have precedence) and even has a few extra feature like proxy or inline config files.
 This can be helpful, if you want to share specific parameters valid for a specific plugin.
 In order to do so just save a `vcm.config.js` in your plugin's root directory.
 This file has to return a js object as default export.
@@ -155,14 +155,15 @@ export default {
 
 The following parameters are valid:
 
-| parameter | type    | description                                                                                   |
-|-----------|---------|-----------------------------------------------------------------------------------------------|
-| config    | string  | an optional fileName to use for configuring the plugin                                        |
-| port      | number  | optional alternative port (default 8008)                                                      |
-| https     | boolean | wether to use http (default) or https                                                         |
-| mapConfig | string  | a filename or URL to a map config (for `serve` command)                                       |
-| vcm       | string  | a filename or URL to a map (for `preview` command)                                            |
-| proxy     | Object  | a server proxy (see [vitejs.dev](https://vitejs.dev/config/server-options.html#server-proxy)) |
+| parameter | type               | description                                                                                   |
+|-----------|--------------------|-----------------------------------------------------------------------------------------------|
+| config    | string&vert;Object | an optional configObject or fileName to use for configuring the plugin                        |
+| auth      | string             | potential auth string to download assets (index.html, config) with                            |
+| port      | number             | optional alternative port (default 8008)                                                      |
+| https     | boolean            | whether to use http (default) or https                                                        |
+| mapConfig | string&vert;Object | an optional configObject resp. fileName or URL to a map config (for `serve` command)          |
+| vcm       | string             | a filename or URL to a map (for `preview` command)                                            |
+| proxy     | Object             | a server proxy (see [vitejs.dev](https://vitejs.dev/config/server-options.html#server-proxy)) |
 
 
 ## About Peer Dependencies

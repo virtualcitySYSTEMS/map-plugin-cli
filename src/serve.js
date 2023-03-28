@@ -20,7 +20,7 @@ import { buildMapUI } from './build.js';
 
 /**
  * @typedef {HostingOptions} ServeOptions
- * @property {string} [mapConfig] - a filename or URL to a map config
+ * @property {string|Object} [mapConfig] - an optional configObject resp. fileName or URL to a map config
  */
 
 async function getProxy(protocol, port) {
