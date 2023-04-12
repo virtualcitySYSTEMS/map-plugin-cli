@@ -17,7 +17,9 @@ export function getDirname() {
  * @type {string} version
  * @type {string} name
  */
-export const { version, name } = JSON.parse(fs.readFileSync(path.join(getDirname(), '..', 'package.json')).toString());
+export const { version, name } = JSON.parse(
+  fs.readFileSync(path.join(getDirname(), '..', 'package.json')).toString(),
+);
 
 /**
  * @type {(arg1: string) => Promise<string>}

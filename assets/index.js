@@ -15,8 +15,12 @@ export default function plugin(config, baseUrl) {
   // eslint-disable-next-line no-console
   console.log(config, baseUrl);
   return {
-    get name() { return name; },
-    get version() { return version; },
+    get name() {
+      return name;
+    },
+    get version() {
+      return version;
+    },
     /**
      * @param {import("@vcmap/ui").VcsUiApp} vcsUiApp
      * @param {PluginState=} state
@@ -24,7 +28,11 @@ export default function plugin(config, baseUrl) {
      */
     initialize: async (vcsUiApp, state) => {
       // eslint-disable-next-line no-console
-      console.log('Called before loading the rest of the current context. Passed in the containing Vcs UI App ', vcsUiApp, state);
+      console.log(
+        'Called before loading the rest of the current context. Passed in the containing Vcs UI App ',
+        vcsUiApp,
+        state,
+      );
     },
     /**
      * @param {import("@vcmap/ui").VcsUiApp} vcsUiApp
@@ -32,7 +40,10 @@ export default function plugin(config, baseUrl) {
      */
     onVcsAppMounted: async (vcsUiApp) => {
       // eslint-disable-next-line no-console
-      console.log('Called when the root UI component is mounted and managers are ready to accept components', vcsUiApp);
+      console.log(
+        'Called when the root UI component is mounted and managers are ready to accept components',
+        vcsUiApp,
+      );
     },
     /**
      * @returns {T}

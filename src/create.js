@@ -28,10 +28,17 @@ import { name, version, promiseExec, getDirname } from './pluginCliHelper.js';
  * @param {string} pluginPath
  * @param {string[]} filter - files or dirs to be extracted
  */
-async function downloadAndExtractPluginTar(pluginName, pluginPath, filter = undefined) {
+async function downloadAndExtractPluginTar(
+  pluginName,
+  pluginPath,
+  filter = undefined,
+) {
   const logMsg = filter ? filter.join(', ') : pluginName;
   logger.spin(`Downloading and extracting ${logMsg}`);
-  const { stdout: packOut, stderr: packErr } = await promiseExec(`npm pack ${pluginName} --quiet`, { cwd: pluginPath });
+  const { stdout: packOut, stderr: packErr } = await promiseExec(
+    `npm pack ${pluginName} --quiet`,
+    { cwd: pluginPath },
+  );
   logger.error(packErr);
 
   const tarName = packOut.trim();
@@ -42,7 +49,8 @@ async function downloadAndExtractPluginTar(pluginName, pluginPath, filter = unde
     strip: 1,
   };
   if (filter) {
-    extractOptions.filter = entryPath => filter.some(f => entryPath.includes(f));
+    extractOptions.filter = (entryPath) =>
+      filter.some((f) => entryPath.includes(f));
   }
   await tar.x(extractOptions);
   await fs.promises.rm(tarPath);
@@ -59,7 +67,11 @@ async function downloadAndExtractPluginTar(pluginName, pluginPath, filter = unde
 async function copyPluginTemplate(options, pluginPath) {
   await downloadAndExtractPluginTar(options.template, pluginPath);
 
-  const pluginPackageJson = JSON.parse((await fs.promises.readFile(path.join(pluginPath, 'package.json'))).toString());
+  const pluginPackageJson = JSON.parse(
+    (
+      await fs.promises.readFile(path.join(pluginPath, 'package.json'))
+    ).toString(),
+  );
   const userPackageJson = {
     name: options.name,
     version: options.version,
@@ -81,7 +93,11 @@ async function copyPluginTemplate(options, pluginPath) {
     JSON.stringify(packageJson, null, 2),
   );
 
-  const configJson = JSON.parse((await fs.promises.readFile(path.join(pluginPath, 'config.json'))).toString());
+  const configJson = JSON.parse(
+    (
+      await fs.promises.readFile(path.join(pluginPath, 'config.json'))
+    ).toString(),
+  );
   configJson.name = options.name;
 
   const writeConfigPromise = fs.promises.writeFile(
@@ -89,18 +105,16 @@ async function copyPluginTemplate(options, pluginPath) {
     JSON.stringify(configJson, null, 2),
   );
 
-  await Promise.all([
-    writePackagePromise,
-    writeConfigPromise,
-  ]);
+  await Promise.all([writePackagePromise, writeConfigPromise]);
   logger.debug('created plugin template');
 
   try {
     await updatePeerDependencies(packageJson.peerDependencies, pluginPath);
     logger.spin('installing dependencies... (this may take a while)');
     if (packageJson.dependencies) {
-      const deps = Object.entries(packageJson.dependencies)
-        .map(([depName, depVersion]) => `${depName}@${depVersion}`);
+      const deps = Object.entries(packageJson.dependencies).map(
+        ([depName, depVersion]) => `${depName}@${depVersion}`,
+      );
       await installDeps(deps, DepType.DEP, pluginPath);
     }
     await installDeps([`${name}@${version}`], DepType.DEV, pluginPath);
@@ -118,13 +132,12 @@ async function copyPluginTemplate(options, pluginPath) {
  * @param {string} pluginPath
  */
 async function createPluginTemplate(options, pluginPath) {
-  const installVitest = options.scripts && options.scripts.find(script => script.test);
+  const installVitest =
+    options.scripts && options.scripts.find((script) => script.test);
   if (!installVitest) {
     options.scripts.push({ test: 'echo "Error: no test specified" && exit 1' });
   } else {
-    options.scripts.push(
-      { coverage: 'vitest run --coverage' },
-    );
+    options.scripts.push({ coverage: 'vitest run --coverage' });
   }
 
   const packageJson = {
@@ -133,21 +146,15 @@ async function createPluginTemplate(options, pluginPath) {
     description: options.description,
     type: 'module',
     main: 'src/index.js',
-    scripts: Object.assign({ prepublishOnly: 'vcmplugin build' }, ...options.scripts),
+    scripts: Object.assign(
+      { prepublishOnly: 'vcmplugin build' },
+      ...options.scripts,
+    ),
     author: options.author,
     license: options.license,
     dependencies: {},
-    keywords: [
-      'vcmap',
-      'plugin',
-    ],
-    files: [
-      'src/',
-      'dist/',
-      'plugin-assets/',
-      'LICENSE.md',
-      'README.md',
-    ],
+    keywords: ['vcmap', 'plugin'],
+    files: ['src/', 'dist/', 'plugin-assets/', 'LICENSE.md', 'README.md'],
     exports: {
       '.': './src/index.js',
       './dist': './dist/index.js',
@@ -160,13 +167,14 @@ async function createPluginTemplate(options, pluginPath) {
     };
   }
 
-  const installEsLint = options.scripts.find(script => script.lint);
+  const installEsLint = options.scripts.find((script) => script.lint);
   if (installEsLint) {
     packageJson.eslintIgnore = ['node_modules'];
     packageJson.eslintConfig = {
       root: true,
       extends: '@vcsuite/eslint-config/vue',
     };
+    packageJson.prettier = '@vcsuite/eslint-config/prettier.js';
   }
 
   const writePackagePromise = fs.promises.writeFile(
@@ -199,11 +207,17 @@ async function createPluginTemplate(options, pluginPath) {
 
   if (installVitest) {
     logger.debug('setting up test environment');
-    await downloadAndExtractPluginTar('@vcmap/hello-world', pluginPath, ['tests', 'vitest.config.js']);
+    await downloadAndExtractPluginTar('@vcmap/hello-world', pluginPath, [
+      'tests',
+      'vitest.config.js',
+    ]);
   }
 
   try {
-    const peerDependencies = options.peerDeps.reduce((obj, key) => ({ ...obj, [key]: 'latest' }), {});
+    const peerDependencies = options.peerDeps.reduce(
+      (obj, key) => ({ ...obj, [key]: 'latest' }),
+      {},
+    );
     await updatePeerDependencies(peerDependencies, pluginPath);
     logger.spin('installing dependencies... (this may take a while)');
     const devDeps = [`${name}@${version}`];
@@ -211,7 +225,12 @@ async function createPluginTemplate(options, pluginPath) {
       devDeps.push('@vcsuite/eslint-config');
     }
     if (installVitest) {
-      devDeps.push('vitest', '@vitest/coverage-c8', 'jest-canvas-mock', 'jsdom');
+      devDeps.push(
+        'vitest',
+        '@vitest/coverage-c8',
+        'jest-canvas-mock',
+        'jsdom',
+      );
     }
     await installDeps(devDeps, DepType.DEV, pluginPath);
     logger.success('Installed dependencies');
@@ -250,10 +269,7 @@ async function createPlugin(options) {
 
   const writeReadmePromise = fs.promises.writeFile(
     path.join(pluginPath, 'README.md'),
-    [
-      `# ${options.name}`,
-      'describe your plugin',
-    ].join('\n'),
+    [`# ${options.name}`, 'describe your plugin'].join('\n'),
   );
 
   const writeChangesPromise = fs.promises.writeFile(
@@ -308,9 +324,27 @@ export default async function create() {
     { title: 'build', value: { build: 'vcmplugin build' }, selected: true },
     { title: 'pack', value: { pack: 'vcmplugin pack' }, selected: true },
     { title: 'start', value: { start: 'vcmplugin serve' }, selected: true },
-    { title: 'preview', value: { preview: 'vcmplugin preview' }, selected: true },
-    { title: 'buildStagingApp', value: { buildStagingApp: 'vcmplugin buildStagingApp' }, selected: true },
-    { title: 'lint', value: { lint: 'eslint "{src,tests}/**/*.{js,vue}"' }, selected: true },
+    {
+      title: 'preview',
+      value: { preview: 'vcmplugin preview' },
+      selected: true,
+    },
+    {
+      title: 'buildStagingApp',
+      value: { buildStagingApp: 'vcmplugin buildStagingApp' },
+      selected: true,
+    },
+    {
+      title: 'lint',
+      value: {
+        'lint:js': 'eslint . --ext .vue,.js,.cjs,.mjs,.ts,.cts,.mts',
+        'lint:prettier': 'prettier --check .',
+        lint: 'npm run lint:js && npm run lint:prettier',
+        format:
+          'prettier --write --list-different . && npm run lint:js -- --fix',
+      },
+      selected: true,
+    },
     { title: 'test', value: { test: 'vitest' }, selected: true },
   ];
 
@@ -342,7 +376,7 @@ export default async function create() {
       name: 'version',
       message: 'Version',
       initial: '1.0.0',
-      validate: value => !!semver.valid(value),
+      validate: (value) => !!semver.valid(value),
     },
     {
       type: 'text',
@@ -367,11 +401,10 @@ export default async function create() {
       name: 'license',
       message: 'License',
       initial: 0,
-      choices: Object.values(LicenseType)
-        .map(type => ({
-          title: type,
-          value: type,
-        })),
+      choices: Object.values(LicenseType).map((type) => ({
+        title: type,
+        value: type,
+      })),
     },
     {
       type: 'select',
@@ -404,7 +437,11 @@ export default async function create() {
     },
   ];
 
-  const answers = await prompts(questions, { onCancel() { process.exit(0); } });
+  const answers = await prompts(questions, {
+    onCancel() {
+      process.exit(0);
+    },
+  });
 
   await createPlugin(answers);
 }

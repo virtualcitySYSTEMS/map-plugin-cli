@@ -9,7 +9,6 @@ import buildModule, { buildMapUI, getDefaultConfig } from './build.js';
 import setupMapUi from './setupMapUi.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
 
-
 /**
  * creates production preview application in the dist folder based on the @vcmap/ui default map configuration.
  * @returns {Promise<void>}
@@ -21,11 +20,16 @@ export default async function buildStagingApp() {
   await rm(distPath, { recursive: true, force: true });
   await mkdir(distPath);
   await setupMapUi();
-  const { buildPluginsForPreview } = await import('@vcmap/ui/build/buildHelpers.js');
+  const { buildPluginsForPreview } = await import(
+    '@vcmap/ui/build/buildHelpers.js'
+  );
   await buildPluginsForPreview(getDefaultConfig(), true);
   await mkdir(path.join(distPath, 'plugins', pluginName), { recursive: true });
 
-  await buildModule({ outputPath: `plugins/${pluginName}`, keepDistFolder: true });
+  await buildModule({
+    outputPath: `plugins/${pluginName}`,
+    keepDistFolder: true,
+  });
 
   // copy assets folder if exists
   if (fs.existsSync(resolveContext('plugin-assets'))) {
@@ -42,17 +46,32 @@ export default async function buildStagingApp() {
   }
 
   await copyFile(
-    path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'index.html'),
+    path.join(
+      getContext(),
+      'node_modules',
+      '@vcmap',
+      'ui',
+      'dist',
+      'index.html',
+    ),
     path.join(distPath, 'index.html'),
   );
   const { default: vcmConfigJs } = await getVcmConfigJs();
-  const config = await getConfigJson(vcmConfigJs.mapConfig, vcmConfigJs.auth, false, vcmConfigJs.config);
+  const config = await getConfigJson(
+    vcmConfigJs.mapConfig,
+    vcmConfigJs.auth,
+    false,
+    vcmConfigJs.config,
+  );
   // update Entry
-  const pluginConfig = config.plugins.find(p => p.name === pluginName);
+  const pluginConfig = config.plugins.find((p) => p.name === pluginName);
   if (pluginConfig) {
     pluginConfig.entry = `plugins/${pluginName}/index.js`;
   }
-  await writeFile(path.join(distPath, 'map.config.json'), JSON.stringify(config, null, 2));
+  await writeFile(
+    path.join(distPath, 'map.config.json'),
+    JSON.stringify(config, null, 2),
+  );
   await cp(
     path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'assets'),
     path.join(distPath, 'assets'),

@@ -1,37 +1,34 @@
 #!/usr/bin/env node
 import program from 'commander';
 import './src/defaultCommand.js';
-import {
-  create, serve, build, pack, preview, update,
-} from './index.js';
+import { create, serve, build, pack, preview, update } from './index.js';
 import { version } from './src/pluginCliHelper.js';
 import setupMapUi from './src/setupMapUi.js';
 import buildStagingApp from './src/buildStagingApp.js';
 
 program.version(version);
 
-program
-  .command('create')
-  .defaultOptions()
-  .safeAction(create);
+program.command('create').defaultOptions().safeAction(create);
 
-program
-  .command('pack')
-  .defaultOptions()
-  .safeAction(pack);
+program.command('pack').defaultOptions().safeAction(pack);
 
 program
   .command('preview')
   .defaultOptions()
   .defaultServeOptions()
-  .option('--vcm [url]', 'URL to a virtualcityMAP application', val => val.replace(/\/$/, ''))
+  .option('--vcm [url]', 'URL to a virtualcityMAP application', (val) =>
+    val.replace(/\/$/, ''),
+  )
   .safeAction(preview);
 
 program
   .command('serve')
   .defaultOptions()
   .defaultServeOptions()
-  .option('--mapConfig [config]', 'an optional map config (either file or URL) to use')
+  .option(
+    '--mapConfig [config]',
+    'an optional map config (either file or URL) to use',
+  )
   .safeAction(serve);
 
 program
@@ -41,18 +38,10 @@ program
   .option('--watch', 'watch file changes')
   .safeAction(build);
 
-program
-  .command('buildStagingApp')
-  .defaultOptions()
-  .safeAction(buildStagingApp);
+program.command('buildStagingApp').defaultOptions().safeAction(buildStagingApp);
 
-program
-  .command('setup-map-ui')
-  .safeAction(setupMapUi);
+program.command('setup-map-ui').safeAction(setupMapUi);
 
-program
-  .command('update')
-  .defaultOptions()
-  .safeAction(update);
+program.command('update').defaultOptions().safeAction(update);
 
 program.parse(process.argv);

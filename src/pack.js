@@ -5,7 +5,6 @@ import { getPluginName } from './packageJsonHelpers.js';
 import { resolveContext } from './context.js';
 import build from './build.js';
 
-
 /**
  * @returns {Promise<void>}
  */
@@ -29,7 +28,10 @@ async function ensureConfigJson() {
       }
     }
   }
-  await fs.promises.writeFile(resolveContext('dist', 'config.json'), JSON.stringify(config, null, 2));
+  await fs.promises.writeFile(
+    resolveContext('dist', 'config.json'),
+    JSON.stringify(config, null, 2),
+  );
 }
 
 /**
@@ -38,7 +40,9 @@ async function ensureConfigJson() {
  */
 function zip(name) {
   return new Promise((resolve, reject) => {
-    const zipStream = fs.createWriteStream(resolveContext('dist', `${name.replace(/\//, '-')}.zip`));
+    const zipStream = fs.createWriteStream(
+      resolveContext('dist', `${name.replace(/\//, '-')}.zip`),
+    );
     const archive = archiver('zip', { zlib: { level: 5 } });
 
     zipStream.on('close', () => {
@@ -67,7 +71,10 @@ function zip(name) {
     });
 
     if (fs.existsSync(resolveContext('plugin-assets'))) {
-      archive.directory(resolveContext('plugin-assets'), `${name}/plugin-assets`);
+      archive.directory(
+        resolveContext('plugin-assets'),
+        `${name}/plugin-assets`,
+      );
     }
 
     archive.finalize().then(() => {

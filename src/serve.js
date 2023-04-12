@@ -8,13 +8,14 @@ import { getContext } from './context.js';
 import {
   addConfigRoute,
   addIndexRoute,
-  addMapConfigRoute, addPluginAssets,
+  addMapConfigRoute,
+  addPluginAssets,
   checkReservedDirectories,
   createConfigJsonReloadPlugin,
   printVcmapUiVersion,
   resolveMapUi,
 } from './hostingHelpers.js';
-import { getPluginName } from './packageJsonHelpers.js';
+import { getPackageJson, getPluginName } from './packageJsonHelpers.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
 import { buildMapUI } from './build.js';
 
@@ -24,8 +25,12 @@ import { buildMapUI } from './build.js';
  */
 
 async function getProxy(protocol, port) {
-  const { default: getPluginProxies } = await import('@vcmap/ui/build/getPluginProxies.js');
-  const { determineHostIpFromInterfaces } = await import('@vcmap/ui/build/determineHost.js');
+  const { default: getPluginProxies } = await import(
+    '@vcmap/ui/build/getPluginProxies.js'
+  );
+  const { determineHostIpFromInterfaces } = await import(
+    '@vcmap/ui/build/determineHost.js'
+  );
   const { getInlinePlugins } = await import('@vcmap/ui/build/buildHelpers.js');
 
   const target = `${protocol}://${determineHostIpFromInterfaces()}:${port}`;
@@ -36,16 +41,25 @@ async function getProxy(protocol, port) {
     proxy[`^/plugins/${inlinePlugin}/.*`] = {
       target,
       rewrite: (route) => {
-        const rest = route.replace(new RegExp(`^/plugins/${inlinePlugin}/`), '');
+        const rest = route.replace(
+          new RegExp(`^/plugins/${inlinePlugin}/`),
+          '',
+        );
         const file = rest || 'index.js';
-        return path.posix.join(path.relative(getContext(), mapUiPlugins), inlinePlugin, file);
+        return path.posix.join(
+          path.relative(getContext(), mapUiPlugins),
+          inlinePlugin,
+          file,
+        );
       },
     };
   });
 
   const pluginRoutes = Object.keys(proxy);
   const name = await getPluginName();
-  const hasThisPlugin = pluginRoutes.find(p => p.startsWith(`^/plugins/${name}`));
+  const hasThisPlugin = pluginRoutes.find((p) =>
+    p.startsWith(`^/plugins/${name}`),
+  );
 
   if (hasThisPlugin) {
     delete proxy[hasThisPlugin];
@@ -60,7 +74,7 @@ async function getProxy(protocol, port) {
   // Cesium engine assets are not part of Build
   proxy['/node_modules/@vcmap-cesium/engine/Build/Assets'] = {
     target,
-    rewrite: p => p.replace(/Build/, 'Source'),
+    rewrite: (p) => p.replace(/Build/, 'Source'),
   };
   return proxy;
 }
@@ -71,7 +85,9 @@ async function getProxy(protocol, port) {
  */
 export default async function serve(options) {
   if (!fs.existsSync(path.join(getContext(), 'node_modules', '@vcmap', 'ui'))) {
-    logger.error('Can only serve in dev mode, if the map ui is a dependency of the current context');
+    logger.error(
+      'Can only serve in dev mode, if the map ui is a dependency of the current context',
+    );
     return;
   }
   const { default: vcmConfigJs } = await getVcmConfigJs();
@@ -87,6 +103,7 @@ export default async function serve(options) {
 
   logger.info('Starting development server...');
   const proxy = await getProxy(mergedOptions.https ? 'https' : 'http', port);
+  const { peerDependencies } = await getPackageJson();
 
   const server = await createServer({
     root: getContext(),
@@ -95,25 +112,13 @@ export default async function serve(options) {
       alias: {
         '@cesium/engine': '@vcmap-cesium/engine',
       },
+      dedupe: Object.keys(peerDependencies),
     },
     optimizeDeps: {
-      exclude: [
-        '@vcmap/ui',
-        '@vcmap/core',
-        'ol',
-        'proj4',
-      ],
-      include: [
-        'fast-deep-equal',
-        'rbush-knn',
-        'pbf',
-        '@vcmap-cesium/engine',
-      ],
+      exclude: ['@vcmap/ui', '@vcmap/core', 'ol', 'proj4'],
+      include: ['fast-deep-equal', 'rbush-knn', 'pbf', '@vcmap-cesium/engine'],
     },
-    plugins: [
-      createVuePlugin(),
-      createConfigJsonReloadPlugin(),
-    ],
+    plugins: [createVuePlugin(), createConfigJsonReloadPlugin()],
     server: {
       middlewareMode: true,
       https: mergedOptions.https,
@@ -122,13 +127,19 @@ export default async function serve(options) {
     css: {
       preprocessorOptions: {
         sass: {
-          additionalData: "\n@import './node_modules/@vcmap/ui/src/styles/variables.scss'\n",
+          additionalData:
+            "\n@import './node_modules/@vcmap/ui/src/styles/variables.scss'\n",
         },
       },
     },
   });
 
-  addMapConfigRoute(app, mergedOptions.mapConfig, mergedOptions.auth, mergedOptions.config);
+  addMapConfigRoute(
+    app,
+    mergedOptions.mapConfig,
+    mergedOptions.auth,
+    mergedOptions.config,
+  );
   addIndexRoute(app, server);
   addPluginAssets(app, 'src');
   await addConfigRoute(app, mergedOptions.auth, mergedOptions.config);

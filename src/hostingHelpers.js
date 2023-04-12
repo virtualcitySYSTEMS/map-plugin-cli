@@ -21,16 +21,23 @@ import { promiseExec, getDirname } from './pluginCliHelper.js';
  * @returns {string}
  */
 export function resolveMapUi(...pathSegments) {
-  return path.join(getContext(), 'node_modules', '@vcmap', 'ui', ...pathSegments);
+  return path.join(
+    getContext(),
+    'node_modules',
+    '@vcmap',
+    'ui',
+    ...pathSegments,
+  );
 }
 
 export function checkReservedDirectories() {
-  ['assets', 'plugins', 'config']
-    .forEach((dir) => {
-      if (fs.existsSync(path.join(getContext(), dir))) {
-        logger.warning(`found reserved directory ${dir}. serving my not work as exptected`);
-      }
-    });
+  ['assets', 'plugins', 'config'].forEach((dir) => {
+    if (fs.existsSync(path.join(getContext(), dir))) {
+      logger.warning(
+        `found reserved directory ${dir}. serving my not work as exptected`,
+      );
+    }
+  });
 }
 
 /**
@@ -47,7 +54,9 @@ export function httpGet(stringUrl, auth, handler) {
   };
 
   if (auth) {
-    options.headers = { Authorization: `Basic ${Buffer.from(auth).toString('base64')}` };
+    options.headers = {
+      Authorization: `Basic ${Buffer.from(auth).toString('base64')}`,
+    };
   }
   if (url.protocol === 'https:') {
     https.get(options, handler);
@@ -91,7 +100,9 @@ const configMap = new Map();
 export async function printVcmapUiVersion() {
   const packageJsonPath = resolveMapUi('package.json');
   if (!fs.existsSync(packageJsonPath)) {
-    throw new Error(`Cannot find the @vcmap/ui package in ${getContext()}. Are you sure you installed it?`);
+    throw new Error(
+      `Cannot find the @vcmap/ui package in ${getContext()}. Are you sure you installed it?`,
+    );
   }
 
   const content = await fs.promises.readFile(packageJsonPath);
@@ -109,7 +120,7 @@ export async function reWriteConfig(config, pluginConfig, production) {
   config.plugins = config.plugins ?? []; // XXX check if we have plugins in this repos dependencies?
   pluginConfig.entry = production ? 'dist/index.js' : await getPluginEntry();
   pluginConfig.name = await getPluginName();
-  const idx = config.plugins.findIndex(p => p.name === pluginConfig.name);
+  const idx = config.plugins.findIndex((p) => p.name === pluginConfig.name);
   if (idx > -1) {
     config.plugins.splice(idx, 1, pluginConfig);
   } else {
@@ -211,15 +222,20 @@ export function createConfigJsonReloadPlugin() {
  * @param {string} [configFile]
  * @param {boolean} [production]
  */
-export function addMapConfigRoute(app, mapConfig, auth, configFile, production) {
+export function addMapConfigRoute(
+  app,
+  mapConfig,
+  auth,
+  configFile,
+  production,
+) {
   app.get('/map.config.json', (req, res) => {
-    getConfigJson(mapConfig, auth, production, configFile)
-      .then((config) => {
-        const stringConfig = JSON.stringify(config, null, 2);
-        res.setHeader('Content-Type', 'application/json');
-        res.write(stringConfig);
-        res.end();
-      });
+    getConfigJson(mapConfig, auth, production, configFile).then((config) => {
+      const stringConfig = JSON.stringify(config, null, 2);
+      res.setHeader('Content-Type', 'application/json');
+      res.write(stringConfig);
+      res.end();
+    });
   });
 }
 
@@ -229,7 +245,8 @@ export function addMapConfigRoute(app, mapConfig, auth, configFile, production) 
  * @param {string} [configFileName]
  * @param {boolean} [production]
  */
-export async function addConfigRoute(app, auth, configFileName, production) { // IDEA pass in available plugins and strip unavailable ones?
+export async function addConfigRoute(app, auth, configFileName, production) {
+  // IDEA pass in available plugins and strip unavailable ones?
   const mapUiDir = resolveMapUi();
   const pluginConfig = await getPluginConfig(configFileName);
 
@@ -267,9 +284,9 @@ export async function addConfigRoute(app, auth, configFileName, production) { //
  * @returns {Promise<string>}
  */
 export async function getMapUiIndexHtml(production) {
-  const indexHtmlFileName = production ?
-    resolveMapUi('dist', 'index.html') :
-    path.join(getDirname(), '..', 'assets', 'index.html');
+  const indexHtmlFileName = production
+    ? resolveMapUi('dist', 'index.html')
+    : path.join(getDirname(), '..', 'assets', 'index.html');
   const buffer = await fs.promises.readFile(indexHtmlFileName);
   return buffer.toString();
 }
@@ -293,15 +310,16 @@ export function addPluginAssets(app, base) {
  */
 export function addIndexRoute(app, server, production, hostedVcm, auth) {
   app.get('/', async (req, res) => {
-    let originalIndex = hostedVcm ?
-      await getIndexHtml(`${hostedVcm}/`, auth) :
-      await getMapUiIndexHtml(production); // TODO change hosted vcm index via option?
+    let originalIndex = hostedVcm
+      ? await getIndexHtml(`${hostedVcm}/`, auth)
+      : await getMapUiIndexHtml(production); // TODO change hosted vcm index via option?
 
-    originalIndex = await server.transformIndexHtml('/index.html', originalIndex);
+    originalIndex = await server.transformIndexHtml(
+      '/index.html',
+      originalIndex,
+    );
 
-    res.status(200)
-      .set({ 'Content-Type': 'text/html' })
-      .end(originalIndex);
+    res.status(200).set({ 'Content-Type': 'text/html' }).end(originalIndex);
   });
 }
 

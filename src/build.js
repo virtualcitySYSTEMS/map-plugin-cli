@@ -19,10 +19,7 @@ import { executeUiNpm, resolveMapUi } from './hostingHelpers.js';
 export function getDefaultConfig() {
   return {
     publicDir: false,
-    plugins: [
-      createVuePlugin(),
-      vcsOl(),
-    ],
+    plugins: [createVuePlugin(), vcsOl()],
   };
 }
 
@@ -50,7 +47,9 @@ export default async function buildModule(options) {
   const entry = await getPluginEntry();
   if (path.relative('src', entry).startsWith('.')) {
     logger.warning(`detected irregular entry ${entry}`);
-    logger.warning('vuetify component resolution expects source files to be within "src"');
+    logger.warning(
+      'vuetify component resolution expects source files to be within "src"',
+    );
   }
 
   const pluginName = await getPluginName();
@@ -78,14 +77,17 @@ export default async function buildModule(options) {
         external,
         output: {
           paths: libraryPaths,
-          manualChunks() { // ensure only one chunk will be created
+          manualChunks() {
+            // ensure only one chunk will be created
             return 'index';
           },
         },
       },
-      watch: options.watch ? {
-        skipWrite: true,
-      } : null,
+      watch: options.watch
+        ? {
+            skipWrite: true,
+          }
+        : null,
     },
   };
   const { buildLibrary } = await import('@vcmap/ui/build/buildHelpers.js');

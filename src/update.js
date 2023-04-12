@@ -15,8 +15,11 @@ export async function updatePeerDependencies(pluginPeer, pluginPath) {
   const peerDeps = [`${mapName}@latest`]; // @vcmap/ui is a required peer dep and will be updated in any case
   if (pluginPeer) {
     const pluginPeerDeps = Object.keys(pluginPeer)
-      .filter(depName => !!mapPeer[depName] && pluginPeer[depName] !== mapPeer[depName])
-      .map(depName => `${depName}@${mapPeer[depName]}`);
+      .filter(
+        (depName) =>
+          !!mapPeer[depName] && pluginPeer[depName] !== mapPeer[depName],
+      )
+      .map((depName) => `${depName}@${mapPeer[depName]}`);
     peerDeps.push(...pluginPeerDeps);
   }
   logger.spin('Updating peer dependencies');

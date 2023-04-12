@@ -3,20 +3,28 @@ import { logger } from '@vcsuite/cli-logger';
 import { setContext } from './context.js';
 
 Command.prototype.defaultOptions = function defaultOptions() {
-  this
-    .option('--context [path]', 'an optional context, default is cwd', (value) => {
+  this.option(
+    '--context [path]',
+    'an optional context, default is cwd',
+    (value) => {
       setContext(value);
       return value;
-    });
+    },
+  );
 
   return this;
 };
 
 Command.prototype.defaultServeOptions = function defaultServeOptions() {
-  this
-    .option('-p, --port [port]', 'the port to listen on', /\d+/)
-    .option('--auth <user:password>', 'an optional auth to append to proxy requests')
-    .option('-c, --config <config>', 'a config override to not use the default plugin config')
+  this.option('-p, --port [port]', 'the port to listen on', /\d+/)
+    .option(
+      '--auth <user:password>',
+      'an optional auth to append to proxy requests',
+    )
+    .option(
+      '-c, --config <config>',
+      'a config override to not use the default plugin config',
+    )
     .option('--https', 'use https for serving');
 
   return this;

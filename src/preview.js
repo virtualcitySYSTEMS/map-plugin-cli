@@ -13,7 +13,11 @@ import {
   printVcmapUiVersion,
   resolveMapUi,
 } from './hostingHelpers.js';
-import build, { buildMapUI, getDefaultConfig, getLibraryPaths } from './build.js';
+import build, {
+  buildMapUI,
+  getDefaultConfig,
+  getLibraryPaths,
+} from './build.js';
 import { getContext } from './context.js';
 import setupMapUi from './setupMapUi.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
@@ -58,9 +62,7 @@ async function getServerOptions(hostedVcm, https) {
 
   return {
     publicDir: false,
-    plugins: [
-      createConfigJsonReloadPlugin(),
-    ],
+    plugins: [createConfigJsonReloadPlugin()],
     resolve: {
       alias,
     },
@@ -90,24 +92,51 @@ export default async function preview(options) {
   await build({ development: false, watch: true });
   const app = express();
   logger.info('Starting preview server...');
-  const server = await createServer(await getServerOptions(mergedOptions.vcm, mergedOptions.https));
+  const server = await createServer(
+    await getServerOptions(mergedOptions.vcm, mergedOptions.https),
+  );
 
-  addMapConfigRoute(app, mergedOptions.vcm ? `${mergedOptions.vcm}/map.config.json` : null, mergedOptions.auth, mergedOptions.config, true);
+  addMapConfigRoute(
+    app,
+    mergedOptions.vcm ? `${mergedOptions.vcm}/map.config.json` : null,
+    mergedOptions.auth,
+    mergedOptions.config,
+    true,
+  );
   addIndexRoute(app, server, true, mergedOptions.vcm, mergedOptions.auth);
   addPluginAssets(app, 'dist');
 
   if (!mergedOptions.vcm) {
     logger.spin('compiling preview');
     if (!fs.existsSync(resolveMapUi('plugins', 'node_modules'))) {
-      logger.info('Could not detect node_modules in map ui plugins. Assuming map UI not setup');
+      logger.info(
+        'Could not detect node_modules in map ui plugins. Assuming map UI not setup',
+      );
       await setupMapUi();
     }
-    const { buildPluginsForPreview } = await import('@vcmap/ui/build/buildHelpers.js');
+    const { buildPluginsForPreview } = await import(
+      '@vcmap/ui/build/buildHelpers.js'
+    );
     await buildPluginsForPreview(getDefaultConfig(), true);
     logger.stopSpinner();
     logger.info('@vcmap/ui built for preview');
-    app.use('/assets', express.static(path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'assets')));
-    app.use('/plugins', express.static(path.join(getContext(), 'dist', 'plugins')));
+    app.use(
+      '/assets',
+      express.static(
+        path.join(
+          getContext(),
+          'node_modules',
+          '@vcmap',
+          'ui',
+          'dist',
+          'assets',
+        ),
+      ),
+    );
+    app.use(
+      '/plugins',
+      express.static(path.join(getContext(), 'dist', 'plugins')),
+    );
     await addConfigRoute(app, mergedOptions.auth, mergedOptions.config, true);
   }
 
