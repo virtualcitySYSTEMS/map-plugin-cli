@@ -26,8 +26,8 @@ program
   .defaultOptions()
   .defaultServeOptions()
   .option(
-    '--mapConfig [config]',
-    'an optional map config (either file or URL) to use',
+    '--appConfig [config]',
+    'an optional app config (either file or URL) to use',
   )
   .safeAction(serve);
 

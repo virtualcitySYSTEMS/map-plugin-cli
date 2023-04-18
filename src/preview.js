@@ -6,7 +6,7 @@ import { logger } from '@vcsuite/cli-logger';
 import {
   addConfigRoute,
   addIndexRoute,
-  addMapConfigRoute,
+  addAppConfigRoute,
   addPluginAssets,
   checkReservedDirectories,
   createConfigJsonReloadPlugin,
@@ -79,7 +79,7 @@ async function getServerOptions(hostedVcm, https) {
  * @returns {Promise<void>}
  */
 export default async function preview(options) {
-  const { default: vcmConfigJs } = await getVcmConfigJs();
+  const vcmConfigJs = await getVcmConfigJs();
   const mergedOptions = { ...vcmConfigJs, ...options };
   if (!mergedOptions.vcm) {
     await printVcmapUiVersion();
@@ -96,9 +96,9 @@ export default async function preview(options) {
     await getServerOptions(mergedOptions.vcm, mergedOptions.https),
   );
 
-  addMapConfigRoute(
+  addAppConfigRoute(
     app,
-    mergedOptions.vcm ? `${mergedOptions.vcm}/map.config.json` : null,
+    mergedOptions.vcm ? `${mergedOptions.vcm}/app.config.json` : null,
     mergedOptions.auth,
     mergedOptions.config,
     true,
@@ -137,7 +137,7 @@ export default async function preview(options) {
       '/plugins',
       express.static(path.join(getContext(), 'dist', 'plugins')),
     );
-    await addConfigRoute(app, mergedOptions.auth, mergedOptions.config, true);
+    await addConfigRoute(app);
   }
 
   app.use(server.middlewares);

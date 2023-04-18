@@ -8,7 +8,7 @@ import { getContext } from './context.js';
 import {
   addConfigRoute,
   addIndexRoute,
-  addMapConfigRoute,
+  addAppConfigRoute,
   addPluginAssets,
   checkReservedDirectories,
   createConfigJsonReloadPlugin,
@@ -21,7 +21,7 @@ import { buildMapUI } from './build.js';
 
 /**
  * @typedef {HostingOptions} ServeOptions
- * @property {string|Object} [mapConfig] - an optional configObject resp. fileName or URL to a map config
+ * @property {string|Object} [appConfig] - an optional configObject resp. fileName or URL to an app config
  */
 
 async function getProxy(protocol, port) {
@@ -90,7 +90,7 @@ export default async function serve(options) {
     );
     return;
   }
-  const { default: vcmConfigJs } = await getVcmConfigJs();
+  const vcmConfigJs = await getVcmConfigJs();
   const mergedOptions = { ...vcmConfigJs, ...options };
   await printVcmapUiVersion();
   // In case @vcmap/ui is linked via git+ssh, dist folder is not available and must be built first
@@ -134,15 +134,15 @@ export default async function serve(options) {
     },
   });
 
-  addMapConfigRoute(
+  addAppConfigRoute(
     app,
-    mergedOptions.mapConfig,
+    mergedOptions.appConfig,
     mergedOptions.auth,
     mergedOptions.config,
   );
   addIndexRoute(app, server);
   addPluginAssets(app, 'src');
-  await addConfigRoute(app, mergedOptions.auth, mergedOptions.config);
+  await addConfigRoute(app);
 
   app.use(server.middlewares);
 

@@ -66,11 +66,11 @@ export function httpGet(stringUrl, auth, handler) {
 }
 
 /**
- * @param {string} fileName
+ * @param {string|undefined} fileName
  * @returns {Promise<Object>}
  */
 export async function readConfigJson(fileName) {
-  const configFileName = fileName || resolveContext('config.json');
+  const configFileName = fileName ?? resolveContext('config.json');
   let config = {};
   if (fs.existsSync(configFileName)) {
     const content = await fs.promises.readFile(configFileName);
@@ -81,7 +81,7 @@ export async function readConfigJson(fileName) {
 }
 
 /**
- * @param {string} pluginConfig
+ * @param {string|undefined} pluginConfig
  * @returns {Promise<Object>}
  */
 export async function getPluginConfig(pluginConfig) {
@@ -111,45 +111,47 @@ export async function printVcmapUiVersion() {
 }
 
 /**
- * @param {Object} config
+ * Deletes plugin from other inline configs and adds a temporary config containing the pluginConfig
+ * @param {Object} appConfig
  * @param {Object} pluginConfig
  * @param {boolean} production
  * @returns {Promise<void>}
  */
-export async function reWriteConfig(config, pluginConfig, production) {
-  config.plugins = config.plugins ?? []; // XXX check if we have plugins in this repos dependencies?
+export async function reWriteAppConfig(appConfig, pluginConfig, production) {
+  const name = await getPluginName();
+  pluginConfig.name = name;
   pluginConfig.entry = production ? 'dist/index.js' : await getPluginEntry();
-  pluginConfig.name = await getPluginName();
-  const idx = config.plugins.findIndex((p) => p.name === pluginConfig.name);
-  if (idx > -1) {
-    config.plugins.splice(idx, 1, pluginConfig);
-  } else {
-    config.plugins.push(pluginConfig);
-  }
+  appConfig.modules = appConfig.modules ?? [];
+  appConfig.modules.forEach((config) => {
+    if (Array.isArray(config.plugins)) {
+      config.plugins = config.plugins.filter((p) => p.name !== name);
+    }
+  });
+  appConfig.modules.push({ plugins: [pluginConfig] });
 }
 
 /**
- * @param {string} [mapConfig] - fs or https to config. defaults to @vcmap/ui/map.config.json
+ * @param {string} [appConfig] - fs or https to config. defaults to @vcmap/ui/app.config.json
  * @param {string} [auth]
  * @param {boolean} [production]
  * @param {string} [configFile]
  * @returns {Promise<unknown>}
  */
-export function getConfigJson(mapConfig, auth, production, configFile) {
-  const usedConfig = mapConfig || resolveMapUi('map.config.json');
-  if (configMap.has('map.config.json')) {
-    return Promise.resolve(configMap.get('map.config.json'));
+export function getAppConfigJson(appConfig, auth, production, configFile) {
+  const usedConfig = appConfig || resolveMapUi('app.config.json');
+  if (configMap.has('app.config.json')) {
+    return Promise.resolve(configMap.get('app.config.json'));
   }
-  const isObject = typeof mapConfig === 'object' && mapConfig !== null;
+  const isObject = typeof appConfig === 'object' && appConfig !== null;
   const isWebVcm = !isObject && /^https?:\/\//.test(usedConfig);
   return new Promise((resolve, reject) => {
-    async function handleConfig(data) {
+    async function handleAppConfig(data) {
       try {
-        const configJson = JSON.parse(data);
-        configMap.set('map.config.json', configJson);
+        const appConfigJson = JSON.parse(data);
+        configMap.set('app.config.json', appConfigJson);
         const pluginConfig = await getPluginConfig(configFile);
-        await reWriteConfig(configJson, pluginConfig, production);
-        resolve(configJson);
+        await reWriteAppConfig(appConfigJson, pluginConfig, production);
+        resolve(appConfigJson);
       } catch (e) {
         reject(e);
       }
@@ -161,11 +163,11 @@ export function getConfigJson(mapConfig, auth, production, configFile) {
       });
 
       stream.on('close', async () => {
-        await handleConfig(data);
+        await handleAppConfig(data);
       });
     }
     if (isObject) {
-      handleConfig(JSON.stringify(mapConfig));
+      handleAppConfig(JSON.stringify(appConfig));
     } else if (isWebVcm) {
       httpGet(usedConfig, auth, (res) => {
         if (res.statusCode < 400) {
@@ -217,20 +219,20 @@ export function createConfigJsonReloadPlugin() {
 
 /**
  * @param {Express} app
- * @param {string} mapConfig
+ * @param {string} appConfig
  * @param {string} [auth]
  * @param {string} [configFile]
  * @param {boolean} [production]
  */
-export function addMapConfigRoute(
+export function addAppConfigRoute(
   app,
-  mapConfig,
+  appConfig,
   auth,
   configFile,
   production,
 ) {
-  app.get('/map.config.json', (req, res) => {
-    getConfigJson(mapConfig, auth, production, configFile).then((config) => {
+  app.get('/app.config.json', (req, res) => {
+    getAppConfigJson(appConfig, auth, production, configFile).then((config) => {
       const stringConfig = JSON.stringify(config, null, 2);
       res.setHeader('Content-Type', 'application/json');
       res.write(stringConfig);
@@ -241,14 +243,11 @@ export function addMapConfigRoute(
 
 /**
  * @param {Express} app
- * @param {string} [auth]
- * @param {string} [configFileName]
- * @param {boolean} [production]
  */
-export async function addConfigRoute(app, auth, configFileName, production) {
+export async function addConfigRoute(app) {
   // IDEA pass in available plugins and strip unavailable ones?
   const mapUiDir = resolveMapUi();
-  const pluginConfig = await getPluginConfig(configFileName);
+  const pluginName = await getPluginName();
 
   app.get('/config*', async (req, res) => {
     const { url } = req;
@@ -261,7 +260,9 @@ export async function addConfigRoute(app, auth, configFileName, production) {
         const configContent = await fs.promises.readFile(fileName);
         const config = JSON.parse(configContent);
         configMap.set(url, config);
-        await reWriteConfig(config, pluginConfig, production);
+        if (Array.isArray(config.plugins)) {
+          config.plugins = config.plugins.filter((p) => p.name !== pluginName);
+        }
         response = JSON.stringify(config);
       } catch (e) {
         configMap.delete(url);

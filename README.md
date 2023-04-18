@@ -75,7 +75,7 @@ npx vcmplugin serve
 The dev mode gives you complete debug information on all integrated libraries (@vcmap/core, ol etc.)
 By default, this command will launch a dev server at localhost:8008 using
 the @vcmap/ui peer dependency package of your plugin as its base.
-You can provide an alternate map config if you wish.
+You can provide an alternate app config if you wish.
 
 This is the dev mode, only _your_
 plugin will be served. Any other plugins in the config will be stripped. To view how
@@ -107,7 +107,7 @@ A staging application creates a full deployable VC Map in the `dist` folder with
 - compiled plugin which is in development.
 
 Building the staging application will collect all parts and will inject the plugin in development in the default
-map configuration. The staging application can for example be used to deploy the App in an Apache in a postCommit
+app configuration. The staging application can for example be used to deploy the App in an Apache in a postCommit
 Pipeline. (See .gitlab-ci.yml for an example).
 
 ```bash
@@ -179,7 +179,7 @@ The following parameters are valid:
 | auth      | string             | potential auth string to download assets (index.html, config) with                            |
 | port      | number             | optional alternative port (default 8008)                                                      |
 | https     | boolean            | whether to use http (default) or https                                                        |
-| mapConfig | string&vert;Object | an optional configObject resp. fileName or URL to a map config (for `serve` command)          |
+| appConfig | string&vert;Object | an optional configObject resp. fileName or URL to an app config (for `serve` command)         |
 | vcm       | string             | a filename or URL to a map (for `preview` command)                                            |
 | proxy     | Object             | a server proxy (see [vitejs.dev](https://vitejs.dev/config/server-options.html#server-proxy)) |
 

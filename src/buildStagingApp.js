@@ -3,14 +3,14 @@ import path from 'path';
 import fs from 'fs';
 import { logger } from '@vcsuite/cli-logger';
 import { getContext, resolveContext } from './context.js';
-import { getConfigJson, resolveMapUi } from './hostingHelpers.js';
+import { getAppConfigJson, resolveMapUi } from './hostingHelpers.js';
 import { getPluginName } from './packageJsonHelpers.js';
 import buildModule, { buildMapUI, getDefaultConfig } from './build.js';
 import setupMapUi from './setupMapUi.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
 
 /**
- * creates production preview application in the dist folder based on the @vcmap/ui default map configuration.
+ * creates production preview application in the dist folder based on the @vcmap/ui default configuration.
  * @returns {Promise<void>}
  */
 export default async function buildStagingApp() {
@@ -56,21 +56,23 @@ export default async function buildStagingApp() {
     ),
     path.join(distPath, 'index.html'),
   );
-  const { default: vcmConfigJs } = await getVcmConfigJs();
-  const config = await getConfigJson(
-    vcmConfigJs.mapConfig,
+  const vcmConfigJs = await getVcmConfigJs();
+  const appConfig = await getAppConfigJson(
+    vcmConfigJs.appConfig,
     vcmConfigJs.auth,
     false,
     vcmConfigJs.config,
   );
   // update Entry
-  const pluginConfig = config.plugins.find((p) => p.name === pluginName);
+  const pluginConfig = appConfig.modules
+    .at(-1)
+    .plugins.find((p) => p.name === pluginName);
   if (pluginConfig) {
     pluginConfig.entry = `plugins/${pluginName}/index.js`;
   }
   await writeFile(
-    path.join(distPath, 'map.config.json'),
-    JSON.stringify(config, null, 2),
+    path.join(distPath, 'app.config.json'),
+    JSON.stringify(appConfig, null, 2),
   );
   await cp(
     path.join(getContext(), 'node_modules', '@vcmap', 'ui', 'dist', 'assets'),
