@@ -42,7 +42,7 @@ export async function getVcmConfigJs() {
     return vcmConfigJs;
   }
   try {
-    vcmConfigJs = await import(pathToFileURL(vcmConfigJsPath));
+    ({ default: vcmConfigJs } = await import(pathToFileURL(vcmConfigJsPath)));
     logger.info('Using vcm.config.js found in current project.');
   } catch (err) {
     logger.error(err);
