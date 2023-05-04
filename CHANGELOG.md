@@ -1,3 +1,13 @@
+### 2.1.7
+
+- Updated to latest UI and Core Version
+- New Cesium Version 1.105
+- New Openlayers Version 7.3.0
+
+### 2.1.7
+
+- Bugfix
+
 ### 2.1-6
 
 - add eslint-config 3.0.3
