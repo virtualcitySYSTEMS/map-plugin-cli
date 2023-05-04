@@ -111,12 +111,19 @@ export default async function serve(options) {
     resolve: {
       alias: {
         '@cesium/engine': '@vcmap-cesium/engine',
+        tinyqueue: 'tinyqueue/tinyqueue.js',
       },
       dedupe: Object.keys(peerDependencies),
     },
     optimizeDeps: {
       exclude: ['@vcmap/ui', '@vcmap/core', 'ol', 'proj4'],
-      include: ['fast-deep-equal', 'rbush-knn', 'pbf', '@vcmap-cesium/engine'],
+      include: [
+        'fast-deep-equal',
+        'rbush-knn',
+        'pbf',
+        '@vcmap-cesium/engine',
+        'vue',
+      ],
     },
     plugins: [createVuePlugin(), createConfigJsonReloadPlugin()],
     server: {
