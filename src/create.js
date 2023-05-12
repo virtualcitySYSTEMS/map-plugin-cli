@@ -154,7 +154,14 @@ async function createPluginTemplate(options, pluginPath) {
     license: options.license,
     dependencies: {},
     keywords: ['vcmap', 'plugin'],
-    files: ['src/', 'dist/', 'plugin-assets/', 'LICENSE.md', 'README.md'],
+    files: [
+      'src/',
+      'dist/',
+      'plugin-assets/',
+      'LICENSE.md',
+      'README.md',
+      'CHANGELOG.md',
+    ],
     exports: {
       '.': './src/index.js',
       './dist': './dist/index.js',
@@ -273,7 +280,7 @@ async function createPlugin(options) {
   );
 
   const writeChangesPromise = fs.promises.writeFile(
-    path.join(pluginPath, 'CHANGES.md'),
+    path.join(pluginPath, 'CHANGELOG.md'),
     `# v${options.version}\nDocument features and fixes`,
   );
 

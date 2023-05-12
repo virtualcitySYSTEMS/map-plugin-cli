@@ -1,8 +1,12 @@
 import fs from 'fs';
-import archiver from 'archiver';
+import path from 'path';
+import tar from 'tar';
+import { pipeline } from 'stream';
+import { createGzip } from 'zlib';
+import { rm } from 'fs/promises';
 import { logger } from '@vcsuite/cli-logger';
 import { getPluginName } from './packageJsonHelpers.js';
-import { resolveContext } from './context.js';
+import { getContext, resolveContext } from './context.js';
 import build from './build.js';
 
 /**
@@ -38,49 +42,54 @@ async function ensureConfigJson() {
  * @param {string} name
  * @returns {Promise<void>}
  */
-function zip(name) {
-  return new Promise((resolve, reject) => {
-    const zipStream = fs.createWriteStream(
-      resolveContext('dist', `${name.replace(/\//, '-')}.zip`),
-    );
-    const archive = archiver('zip', { zlib: { level: 5 } });
+async function zip(name) {
+  if (fs.existsSync(resolveContext('CHANGES.md'))) {
+    console.error('Please rename CHANGES.md to CHANGELOG.md');
+  }
 
-    zipStream.on('close', () => {
-      resolve();
-    });
+  const files = [
+    ['package.json'],
+    ['README.md'],
+    ['CHANGELOG.md'],
+    ['LICENSE.md'],
+    ['config.json'],
+    ['plugin-assets'],
+  ]
+    .map((fileArray) =>
+      path.relative(resolveContext(), resolveContext(...fileArray)),
+    )
+    .filter(fs.existsSync);
 
-    archive.on('error', (err) => {
-      reject(err);
-    });
+  const file = `${name.replace(/\//, '-')}.tar`;
+  await tar.c(
+    {
+      file: resolveContext('dist', file),
+      cwd: getContext(),
+    },
+    files,
+  );
+  await tar.r(
+    {
+      file: resolveContext('dist', file),
+      cwd: resolveContext('dist'),
+    },
+    ['index.js'],
+  );
 
-    archive.on('warning', (err) => {
-      logger.error(err);
-    });
+  const fileName = resolveContext('dist', file);
+  const read = fs.createReadStream(fileName);
+  const write = fs.createWriteStream(`${fileName}.gz`);
 
-    archive.pipe(zipStream);
-    [
-      ['package.json'],
-      ['README.md'],
-      ['config.json'],
-      ['dist', 'index.js'],
-    ].forEach((fileArray) => {
-      const file = resolveContext(...fileArray);
-      if (fs.existsSync(file)) {
-        archive.file(file, { name: `${name}/${fileArray.pop()}` });
+  await new Promise((res, rej) => {
+    pipeline([read, createGzip(), write], (err) => {
+      if (err) {
+        rej(err);
+      } else {
+        res();
       }
     });
-
-    if (fs.existsSync(resolveContext('plugin-assets'))) {
-      archive.directory(
-        resolveContext('plugin-assets'),
-        `${name}/plugin-assets`,
-      );
-    }
-
-    archive.finalize().then(() => {
-      resolve();
-    });
   });
+  await rm(fileName);
 }
 
 /**

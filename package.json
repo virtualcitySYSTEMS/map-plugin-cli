@@ -31,13 +31,12 @@
   "dependencies": {
     "@vcmap/rollup-plugin-vcs-ol": "^1.0.2",
     "@vcsuite/cli-logger": "^1.0.0",
-    "archiver": "^5.0.0",
     "commander": "^6.0.0",
     "express": "^4.17.3",
     "prompts": "^2.4.1",
     "sass": "1.32.13",
     "semver": "^7.3.5",
-    "tar": "^6.1.13",
+    "tar": "^6.1.14",
     "vite": "^3.2.0",
     "vite-plugin-vue2": "^2.0.2",
     "vue-template-compiler": "~2.7.14"
