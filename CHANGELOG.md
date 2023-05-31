@@ -1,4 +1,8 @@
-### 2.1.7
+### 2.1.9
+
+- Update to vite 4 and other dev dependencies
+
+### 2.1.8
 
 - Updated to latest UI and Core Version
 - New Cesium Version 1.105

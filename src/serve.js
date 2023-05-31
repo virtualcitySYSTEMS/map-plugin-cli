@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { createServer } from 'vite';
-import { createVuePlugin } from 'vite-plugin-vue2';
+import vue2 from '@vitejs/plugin-vue2';
 import express from 'express';
 import { logger } from '@vcsuite/cli-logger';
 import path from 'path';
@@ -125,7 +125,7 @@ export default async function serve(options) {
         'vue',
       ],
     },
-    plugins: [createVuePlugin(), createConfigJsonReloadPlugin()],
+    plugins: [vue2(), createConfigJsonReloadPlugin()],
     server: {
       middlewareMode: true,
       https: mergedOptions.https,

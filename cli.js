@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import program from 'commander';
+import { program } from 'commander';
 import './src/defaultCommand.js';
 import { create, serve, build, pack, preview, update } from './index.js';
 import { version } from './src/pluginCliHelper.js';
