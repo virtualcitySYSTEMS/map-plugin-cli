@@ -1,6 +1,9 @@
 ### 2.1.9
 
 - Update to vite 4 and other dev dependencies
+- Updated to latest @vcmap/ui@5.0.0-rc.25
+- Updated index.html to reflect the latest changes from @vcmap/ui
+- Changed serve command to not build @vcmap/ui anymore if the dist folder does not exists.
 
 ### 2.1.8
 

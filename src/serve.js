@@ -17,7 +17,6 @@ import {
 } from './hostingHelpers.js';
 import { getPackageJson, getPluginName } from './packageJsonHelpers.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
-import { buildMapUI } from './build.js';
 
 /**
  * @typedef {HostingOptions} ServeOptions
@@ -93,10 +92,13 @@ export default async function serve(options) {
   const vcmConfigJs = await getVcmConfigJs();
   const mergedOptions = { ...vcmConfigJs, ...options };
   await printVcmapUiVersion();
+  /*
   // In case @vcmap/ui is linked via git+ssh, dist folder is not available and must be built first
+  // Currently not needed, keep it here if the same problem happens again
   if (!fs.existsSync(resolveMapUi('dist'))) {
     await buildMapUI();
   }
+  */
   checkReservedDirectories();
   const app = express();
   const port = mergedOptions.port || 8008;
@@ -107,7 +109,7 @@ export default async function serve(options) {
 
   const server = await createServer({
     root: getContext(),
-    publicDir: false,
+    publicDir: './node_modules/@vcmap/ui/public',
     resolve: {
       alias: {
         '@cesium/engine': '@vcmap-cesium/engine',
@@ -119,6 +121,7 @@ export default async function serve(options) {
       exclude: ['@vcmap/ui', '@vcmap/core', 'ol', 'proj4'],
       include: [
         'fast-deep-equal',
+        'rbush',
         'rbush-knn',
         'pbf',
         '@vcmap-cesium/engine',
