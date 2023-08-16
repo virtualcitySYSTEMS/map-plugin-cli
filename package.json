@@ -42,7 +42,7 @@
     "vue-template-compiler": "~2.7.14"
   },
   "peerDependencies": {
-    "@vcmap/ui": "^5.0.0-rc.28",
+    "@vcmap/ui": "^5.0.0-rc.29",
     "vue": "~2.7.14"
   },
   "peerDependenciesMeta": {
