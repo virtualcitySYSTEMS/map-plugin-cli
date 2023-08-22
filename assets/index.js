@@ -6,6 +6,7 @@ import { version, name } from '../package.json';
  */
 
 /**
+ * Implementation of VcsPlugin interface. This function should not throw! Put exceptions in initialize instead.
  * @param {T} config - the configuration of this plugin instance, passed in from the app.
  * @param {string} baseUrl - the absolute URL from which the plugin was loaded (without filename, ending on /)
  * @returns {import("@vcmap/ui/src/vcsUiApp").VcsPlugin<T, PluginState>}
@@ -46,6 +47,14 @@ export default function plugin(config, baseUrl) {
       );
     },
     /**
+     * should return all default values of the configuration
+     * @returns {T}
+     */
+    getDefaultOptions() {
+      return {};
+    },
+    /**
+     * should return the plugin's serialization excluding all default values
      * @returns {T}
      */
     toJSON() {
@@ -64,6 +73,13 @@ export default function plugin(config, baseUrl) {
       return {
         prop: '*',
       };
+    },
+    /**
+     * components for configuring the plugin and/ or custom items defined by the plugin
+     * @returns {Array<import("@vcmap/ui").PluginConfigEditor>}
+     */
+    getConfigEditors() {
+      return [];
     },
     destroy() {
       // eslint-disable-next-line no-console

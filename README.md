@@ -291,6 +291,12 @@ configuration of the plugin as its first argument and the base URL (without the 
 from which the plugin was loaded as its second argument.
 
 ```typescript
+declare type PluginConfigEditor = {
+  component: VueComponent;
+  collectionName?: string;
+  itemName?: string;
+};
+
 declare interface VcsPlugin<T extends Object, S extends Object> {
   readonly name: string;
   readonly version: string;
@@ -298,6 +304,8 @@ declare interface VcsPlugin<T extends Object, S extends Object> {
   onVcsAppMounted(app: VcsUiApp): Promise<void>;
   getState(): Promise<S>;
   toJSON(): Promise<T>;
+  getDefaultOptions(): T;
+  getConfigEditors(): Array<PluginConfigEditor>;
   destroy(): void;
 }
 
@@ -306,6 +314,8 @@ declare function defaultExport<T extends Object, S extends Object>(
   baseUrl: string,
 ): VcsPlugin<T, S>;
 ```
+
+> The function default export should not throw! Put exceptions in initialize instead.
 
 A Simple JavaScript implementation of this interface can be seen below::
 
@@ -330,8 +340,14 @@ export default function defaultExport(config, baseUrl) {
     async getState() {
       return {};
     },
+    getDefaultOptions() {
+      return {};
+    },
     async toJSON() {
       return {};
+    },
+    getConfigEditors() {
+      return [];
     },
     destroy() {},
   };
