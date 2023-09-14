@@ -1,3 +1,9 @@
+### 2.1.12
+
+- Update to @vcmap/ui@5.0.0
+- Update templates (using three @vcmap-show-case plugins from @vcmap/ui repo)
+- Add mapVersion option to cli command `update`
+
 ### 2.1.9
 
 - Update to vite 4 and other dev dependencies
