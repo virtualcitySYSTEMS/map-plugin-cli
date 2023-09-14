@@ -1,4 +1,4 @@
-import { version, name } from '../package.json';
+import { name, version, mapVersion } from '../package.json';
 
 /**
  * @typedef {Object} PluginState
@@ -21,6 +21,9 @@ export default function plugin(config, baseUrl) {
     },
     get version() {
       return version;
+    },
+    get mapVersion() {
+      return mapVersion;
     },
     /**
      * @param {import("@vcmap/ui").VcsUiApp} vcsUiApp

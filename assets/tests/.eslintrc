@@ -1,0 +1,6 @@
+{
+  "extends": ["@vcsuite/eslint-config/mocha"],
+  "rules": {
+    "import/extensions": ["error", "always"]
+  }
+}

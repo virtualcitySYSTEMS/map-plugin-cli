@@ -42,6 +42,13 @@ program.command('buildStagingApp').defaultOptions().safeAction(buildStagingApp);
 
 program.command('setup-map-ui').safeAction(setupMapUi);
 
-program.command('update').defaultOptions().safeAction(update);
+program
+  .command('update')
+  .defaultOptions()
+  .option(
+    '--mapVersion [semver]',
+    'an optional semver range to update to, e.g. 5.0 (Default is latest)',
+  )
+  .safeAction(update);
 
 program.parse(process.argv);

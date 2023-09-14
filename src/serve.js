@@ -124,6 +124,7 @@ export default async function serve(options) {
         'rbush',
         'rbush-knn',
         'pbf',
+        'semver',
         '@vcmap-cesium/engine',
         'vue',
       ],

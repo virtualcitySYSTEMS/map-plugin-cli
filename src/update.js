@@ -1,18 +1,41 @@
 import { logger } from '@vcsuite/cli-logger';
-import { DepType, getPackageJson, installDeps } from './packageJsonHelpers.js';
+import { valid } from 'semver';
+import {
+  checkVcMapVersion,
+  DepType,
+  getPackageJson,
+  installDeps,
+} from './packageJsonHelpers.js';
 import { name, promiseExec } from './pluginCliHelper.js';
+import { getContext } from './context.js';
+
+/**
+ * @typedef {Object} UpdateOptions
+ * @property {string} [mapVersion] - Optional version of @vcmap/ui to update to. Default is latest
+ */
 
 /**
  * Update peer dependencies of a provided packageJson with @vcmap/ui@latest peers
  * @param {Object} pluginPeer - peerDependencies of a plugin
  * @param {string} pluginPath
+ * @param {UpdateOptions} [options]
  * @returns {Promise<void>}
  */
-export async function updatePeerDependencies(pluginPeer, pluginPath) {
+export async function updatePeerDependencies(
+  pluginPeer,
+  pluginPath,
+  options = {},
+) {
+  if (options.mapVersion && !valid(options.mapVersion)) {
+    logger.error(
+      `The mapVersion ${options.mapVersion} is not valid. Using 'latest' instead`,
+    );
+    options.mapVersion = 'latest';
+  }
   const { stdout, stderr } = await promiseExec('npm view @vcmap/ui --json');
   logger.error(stderr);
   const { name: mapName, peerDependencies: mapPeer } = JSON.parse(stdout);
-  const peerDeps = [`${mapName}@latest`]; // @vcmap/ui is a required peer dep and will be updated in any case
+  const peerDeps = [`${mapName}@${options.mapVersion || 'latest'}`]; // @vcmap/ui is a required peer dep and will be updated in any case
   if (pluginPeer) {
     const pluginPeerDeps = Object.keys(pluginPeer)
       .filter(
@@ -41,13 +64,16 @@ async function updateCli(pluginPath) {
 }
 
 /**
- * Updating peer dependencies to @vmap/ui@latest
+ * Updating peer dependencies to @vmap/ui
  * Updating @vcmap/plugin-cli
+ * @param {UpdateOptions} options
  * @returns {Promise<void>}
  */
-export default async function update() {
+export default async function update(options) {
   const packageJson = await getPackageJson();
-  await updatePeerDependencies(packageJson.peerDependencies, process.cwd());
-  await updateCli(process.cwd());
+  const context = getContext();
+  await updatePeerDependencies(packageJson.peerDependencies, context, options);
+  await checkVcMapVersion(context);
+  await updateCli(context);
   logger.success(`Updated plugin ${packageJson.name}`);
 }

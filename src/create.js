@@ -5,7 +5,7 @@ import semver from 'semver';
 import tar from 'tar';
 import { logger } from '@vcsuite/cli-logger';
 import { LicenseType, writeLicense } from './licenses.js';
-import { DepType, installDeps } from './packageJsonHelpers.js';
+import { DepType, installDeps, setVcMapVersion } from './packageJsonHelpers.js';
 import { updatePeerDependencies } from './update.js';
 import { name, version, promiseExec, getDirname } from './pluginCliHelper.js';
 
@@ -22,6 +22,41 @@ import { name, version, promiseExec, getDirname } from './pluginCliHelper.js';
  * @property {Array<string>} peerDeps
  * @property {boolean} gitlabCi
  */
+
+/**
+ *
+ * @param {PluginTemplateOptions} options
+ * @returns {Object}
+ */
+function createPackageJson(options) {
+  return {
+    name: options.name,
+    version: options.version,
+    description: options.description,
+    type: 'module',
+    main: 'src/index.js',
+    scripts: Object.assign(
+      { prepublishOnly: 'vcmplugin build' },
+      ...options.scripts,
+    ),
+    author: options.author,
+    license: options.license,
+    dependencies: {},
+    keywords: ['vcmap', 'plugin'],
+    files: [
+      'src/',
+      'dist/',
+      'plugin-assets/',
+      'LICENSE.md',
+      'README.md',
+      'CHANGELOG.md',
+    ],
+    exports: {
+      '.': './src/index.js',
+      './dist': './dist/index.js',
+    },
+  };
+}
 
 /**
  * @param {string} pluginName
@@ -46,7 +81,7 @@ async function downloadAndExtractPluginTar(
   const extractOptions = {
     file: tarPath,
     cwd: pluginPath,
-    strip: 1,
+    strip: 4,
   };
   if (filter) {
     extractOptions.filter = (entryPath) =>
@@ -65,20 +100,16 @@ async function downloadAndExtractPluginTar(
  * @returns {Promise<void>}
  */
 async function copyPluginTemplate(options, pluginPath) {
-  await downloadAndExtractPluginTar(options.template, pluginPath);
+  await downloadAndExtractPluginTar('@vcmap/ui', pluginPath, [
+    path.join('plugins', options.template),
+  ]);
 
   const pluginPackageJson = JSON.parse(
     (
       await fs.promises.readFile(path.join(pluginPath, 'package.json'))
     ).toString(),
   );
-  const userPackageJson = {
-    name: options.name,
-    version: options.version,
-    description: options.description,
-    author: options.author,
-    license: options.license,
-  };
+  const userPackageJson = createPackageJson(options);
   const packageJson = { ...pluginPackageJson, ...userPackageJson };
   if (options.repository) {
     packageJson.repository = {
@@ -93,11 +124,10 @@ async function copyPluginTemplate(options, pluginPath) {
     JSON.stringify(packageJson, null, 2),
   );
 
-  const configJson = JSON.parse(
-    (
-      await fs.promises.readFile(path.join(pluginPath, 'config.json'))
-    ).toString(),
-  );
+  const configPath = path.join(pluginPath, 'config.json');
+  const configJson = fs.existsSync(configPath)
+    ? JSON.parse((await fs.promises.readFile(configPath)).toString())
+    : {};
   configJson.name = options.name;
 
   const writeConfigPromise = fs.promises.writeFile(
@@ -140,33 +170,7 @@ async function createPluginTemplate(options, pluginPath) {
     options.scripts.push({ coverage: 'vitest run --coverage' });
   }
 
-  const packageJson = {
-    name: options.name,
-    version: options.version,
-    description: options.description,
-    type: 'module',
-    main: 'src/index.js',
-    scripts: Object.assign(
-      { prepublishOnly: 'vcmplugin build' },
-      ...options.scripts,
-    ),
-    author: options.author,
-    license: options.license,
-    dependencies: {},
-    keywords: ['vcmap', 'plugin'],
-    files: [
-      'src/',
-      'dist/',
-      'plugin-assets/',
-      'LICENSE.md',
-      'README.md',
-      'CHANGELOG.md',
-    ],
-    exports: {
-      '.': './src/index.js',
-      './dist': './dist/index.js',
-    },
-  };
+  const packageJson = createPackageJson(options);
 
   if (options.repository) {
     packageJson.repository = {
@@ -176,7 +180,7 @@ async function createPluginTemplate(options, pluginPath) {
 
   const installEsLint = options.scripts.find((script) => script.lint);
   if (installEsLint) {
-    packageJson.eslintIgnore = ['node_modules'];
+    packageJson.eslintIgnore = ['node_modules', 'dist', 'plugin-assets'];
     packageJson.eslintConfig = {
       root: true,
       extends: '@vcsuite/eslint-config/vue',
@@ -214,10 +218,11 @@ async function createPluginTemplate(options, pluginPath) {
 
   if (installVitest) {
     logger.debug('setting up test environment');
-    await downloadAndExtractPluginTar('@vcmap/hello-world', pluginPath, [
-      'tests',
-      'vitest.config.js',
-    ]);
+    await fs.promises.cp(
+      path.join(getDirname(), '..', 'assets', 'tests'),
+      path.join(pluginPath, 'tests'),
+      { recursive: true },
+    );
   }
 
   try {
@@ -276,7 +281,11 @@ async function createPlugin(options) {
 
   const writeReadmePromise = fs.promises.writeFile(
     path.join(pluginPath, 'README.md'),
-    [`# ${options.name}`, 'describe your plugin'].join('\n'),
+    [
+      `# ${options.name}`,
+      '> Part of the [VC Map Project](https://github.com/virtualcitySYSTEMS/map-ui)',
+      'describe your plugin',
+    ].join('\n'),
   );
 
   const writeChangesPromise = fs.promises.writeFile(
@@ -289,12 +298,18 @@ async function createPlugin(options) {
     path.join(pluginPath, '.gitignore'),
   );
 
+  const copyPrettierIgnorePromise = fs.promises.copyFile(
+    path.join(getDirname(), '..', 'assets', 'prettierignore'),
+    path.join(pluginPath, '.prettierignore'),
+  );
+
   await Promise.all([
     writeNpmrcPromise,
     writeReadmePromise,
     writeChangesPromise,
     writeLicense(options.author, options.license, pluginPath),
     copyGitIgnorePromise,
+    copyPrettierIgnorePromise,
   ]);
 
   if (options.gitlabCi) {
@@ -314,6 +329,7 @@ async function createPlugin(options) {
   } else {
     await createPluginTemplate(options, pluginPath);
   }
+  await setVcMapVersion(pluginPath);
   logger.success(`Created plugin ${options.name}`);
 }
 
@@ -323,7 +339,12 @@ async function createPlugin(options) {
 export default async function create() {
   const templateChoices = [
     { title: 'no template (basic structure)', value: null },
-    { title: 'hello-world', value: '@vcmap/hello-world' },
+    { title: 'hello-world', value: '@vcmap-show-case/hello-world' },
+    {
+      title: 'context-menu-example',
+      value: '@vcmap-show-case/context-menu-tester',
+    },
+    { title: 'feature-info-example', value: '@vcmap-show-case/simple-graph' },
     // to add further templates add a choice here
   ];
 
@@ -421,7 +442,7 @@ export default async function create() {
       choices: templateChoices,
     },
     {
-      type: (prev, values) => (!values.template ? 'multiselect' : null),
+      type: 'multiselect',
       message: 'Add the following scripts to the package.json.',
       name: 'scripts',
       choices: scriptChoices,
