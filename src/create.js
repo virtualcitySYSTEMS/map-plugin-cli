@@ -223,6 +223,10 @@ async function createPluginTemplate(options, pluginPath) {
       path.join(pluginPath, 'tests'),
       { recursive: true },
     );
+    await fs.promises.copyFile(
+      path.join(getDirname(), '..', 'assets', 'vitest.config.js'),
+      path.join(pluginPath, 'vitest.config.js'),
+    );
   }
 
   try {
@@ -241,6 +245,7 @@ async function createPluginTemplate(options, pluginPath) {
         'vitest',
         '@vitest/coverage-c8',
         'jest-canvas-mock',
+        'resize-observer-polyfill',
         'jsdom',
       );
     }
