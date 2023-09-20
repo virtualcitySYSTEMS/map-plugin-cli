@@ -18,8 +18,10 @@ const configTest = defineConfig({
     },
   },
   test: {
-    deps: {
-      inline: ['vuetify', '@vcmap/ui'],
+    server: {
+      deps: {
+        inline: ['vuetify', '@vcmap/ui'],
+      },
     },
     environment: 'jsdom',
     setupFiles: ['tests/setup.js'],

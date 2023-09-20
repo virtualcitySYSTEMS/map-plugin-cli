@@ -82,6 +82,7 @@ async function downloadAndExtractPluginTar(
     file: tarPath,
     cwd: pluginPath,
     strip: 4,
+    keep: true,
   };
   if (filter) {
     extractOptions.filter = (entryPath) =>
@@ -101,28 +102,8 @@ async function downloadAndExtractPluginTar(
  */
 async function copyPluginTemplate(options, pluginPath) {
   await downloadAndExtractPluginTar('@vcmap/ui', pluginPath, [
-    path.join('plugins', options.template),
+    path.posix.join('plugins', options.template), // tar x filter requires linux path
   ]);
-
-  const pluginPackageJson = JSON.parse(
-    (
-      await fs.promises.readFile(path.join(pluginPath, 'package.json'))
-    ).toString(),
-  );
-  const userPackageJson = createPackageJson(options);
-  const packageJson = { ...pluginPackageJson, ...userPackageJson };
-  if (options.repository) {
-    packageJson.repository = {
-      url: options.repository,
-    };
-  } else {
-    delete options.repository;
-  }
-
-  const writePackagePromise = fs.promises.writeFile(
-    path.join(pluginPath, 'package.json'),
-    JSON.stringify(packageJson, null, 2),
-  );
 
   const configPath = path.join(pluginPath, 'config.json');
   const configJson = fs.existsSync(configPath)
@@ -130,30 +111,10 @@ async function copyPluginTemplate(options, pluginPath) {
     : {};
   configJson.name = options.name;
 
-  const writeConfigPromise = fs.promises.writeFile(
+  await fs.promises.writeFile(
     path.join(pluginPath, 'config.json'),
     JSON.stringify(configJson, null, 2),
   );
-
-  await Promise.all([writePackagePromise, writeConfigPromise]);
-  logger.debug('created plugin template');
-
-  try {
-    await updatePeerDependencies(packageJson.peerDependencies, pluginPath);
-    logger.spin('installing dependencies... (this may take a while)');
-    if (packageJson.dependencies) {
-      const deps = Object.entries(packageJson.dependencies).map(
-        ([depName, depVersion]) => `${depName}@${depVersion}`,
-      );
-      await installDeps(deps, DepType.DEP, pluginPath);
-    }
-    await installDeps([`${name}@${version}`], DepType.DEV, pluginPath);
-    logger.success('Installed dependencies');
-  } catch (e) {
-    logger.error(e);
-    logger.failure('Failed installing dependencies');
-  }
-  logger.stopSpinner();
 }
 
 /**
@@ -188,7 +149,7 @@ async function createPluginTemplate(options, pluginPath) {
     packageJson.prettier = '@vcsuite/eslint-config/prettier.js';
   }
 
-  const writePackagePromise = fs.promises.writeFile(
+  await fs.promises.writeFile(
     path.join(pluginPath, 'package.json'),
     JSON.stringify(packageJson, null, 2),
   );
@@ -197,24 +158,25 @@ async function createPluginTemplate(options, pluginPath) {
     name: options.name,
   };
 
-  const writeConfigPromise = fs.promises.writeFile(
+  await fs.promises.writeFile(
     path.join(pluginPath, 'config.json'),
     JSON.stringify(configJson, null, 2),
   );
 
-  await fs.promises.mkdir(path.join(pluginPath, 'src'));
-  logger.debug('created src directory');
+  if (options.template) {
+    await copyPluginTemplate(options, pluginPath);
+  } else {
+    const srcPath = path.join(pluginPath, 'src');
+    if (!fs.existsSync(srcPath)) {
+      await fs.promises.mkdir(srcPath);
+      logger.debug('created src directory');
+    }
 
-  const copyIndexPromise = fs.promises.copyFile(
-    path.join(getDirname(), '..', 'assets', 'index.js'),
-    path.join(pluginPath, 'src', 'index.js'),
-  );
-
-  await Promise.all([
-    writePackagePromise,
-    writeConfigPromise,
-    copyIndexPromise,
-  ]);
+    await fs.promises.copyFile(
+      path.join(getDirname(), '..', 'assets', 'index.js'),
+      path.join(pluginPath, 'src', 'index.js'),
+    );
+  }
 
   if (installVitest) {
     logger.debug('setting up test environment');
@@ -243,7 +205,7 @@ async function createPluginTemplate(options, pluginPath) {
     if (installVitest) {
       devDeps.push(
         'vitest',
-        '@vitest/coverage-c8',
+        '@vitest/coverage-v8',
         'jest-canvas-mock',
         'resize-observer-polyfill',
         'jsdom',
@@ -329,11 +291,7 @@ async function createPlugin(options) {
     );
   }
 
-  if (options.template) {
-    await copyPluginTemplate(options, pluginPath);
-  } else {
-    await createPluginTemplate(options, pluginPath);
-  }
+  await createPluginTemplate(options, pluginPath);
   await setVcMapVersion(pluginPath);
   logger.success(`Created plugin ${options.name}`);
 }
@@ -454,7 +412,7 @@ export default async function create() {
       hint: '- Space to select. Enter to submit',
     },
     {
-      type: (prev, values) => (!values.template ? 'multiselect' : null),
+      type: 'multiselect',
       name: 'peerDeps',
       message: 'Add the following peer dependencies to the package.json.',
       choices: peerDependencyChoices,
