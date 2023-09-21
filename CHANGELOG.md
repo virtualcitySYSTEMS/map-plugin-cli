@@ -1,3 +1,9 @@
+## 2.1.13
+
+- Add `bundle` alias for cli command `pack`. Create will now add "bundle" as script in package.json
+- Update to latest @vcmap/ui@5.0.1
+- Update help for `vcmplugin --help`
+
 ### 2.1.12
 
 - Update to @vcmap/ui@5.0.0

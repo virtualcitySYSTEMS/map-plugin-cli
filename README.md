@@ -44,7 +44,7 @@ conflicts in the used API within a plugin. This means, that _all_ commands
 plugin cli _within the plugin itself_ using npx. When using the `create`
 command, the `@vcmap/plugin-cli` will automatically be installed as a devDependency in
 its current major version. You can then use either the scripts defined
-by the template in your package.json `npm start`, `npm run pack` etc. or `npx`
+by the template in your package.json `npm start`, `npm run bundle` etc. or `npx`
 to execute CLI commands.
 
 All commands have (optional) cli options. Run `vcmplugin --help` or `vcmplugin help [command]` for more information.

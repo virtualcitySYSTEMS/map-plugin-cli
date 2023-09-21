@@ -8,12 +8,22 @@ import buildStagingApp from './src/buildStagingApp.js';
 
 program.version(version);
 
-program.command('create').defaultOptions().safeAction(create);
+program
+  .command('create')
+  .summary('create new plugin')
+  .defaultOptions()
+  .safeAction(create);
 
-program.command('pack').defaultOptions().safeAction(pack);
+program
+  .command('bundle')
+  .summary('pack tar for production')
+  .defaultOptions()
+  .alias('pack')
+  .safeAction(pack);
 
 program
   .command('preview')
+  .summary('start preview server')
   .defaultOptions()
   .defaultServeOptions()
   .option('--vcm [url]', 'URL to a virtualcityMAP application', (val) =>
@@ -23,6 +33,7 @@ program
 
 program
   .command('serve')
+  .summary('start dev server')
   .defaultOptions()
   .defaultServeOptions()
   .option(
@@ -33,6 +44,7 @@ program
 
 program
   .command('build')
+  .description('builds plugin including assets using vite')
   .defaultOptions()
   .option('--development', 'set mode to development')
   .option('--watch', 'watch file changes')
@@ -40,10 +52,14 @@ program
 
 program.command('buildStagingApp').defaultOptions().safeAction(buildStagingApp);
 
-program.command('setup-map-ui').safeAction(setupMapUi);
+program
+  .command('setup-map-ui')
+  .description('make other plugins of @vcmap/ui available in dev server')
+  .safeAction(setupMapUi);
 
 program
   .command('update')
+  .description('update to (latest) VC Map version')
   .defaultOptions()
   .option(
     '--mapVersion [semver]',

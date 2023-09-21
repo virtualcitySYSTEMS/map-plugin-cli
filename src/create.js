@@ -313,7 +313,7 @@ export default async function create() {
 
   const scriptChoices = [
     { title: 'build', value: { build: 'vcmplugin build' }, selected: true },
-    { title: 'pack', value: { pack: 'vcmplugin pack' }, selected: true },
+    { title: 'bundle', value: { bundle: 'vcmplugin bundle' }, selected: true },
     { title: 'start', value: { start: 'vcmplugin serve' }, selected: true },
     {
       title: 'preview',
