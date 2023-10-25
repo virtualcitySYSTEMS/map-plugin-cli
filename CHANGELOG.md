@@ -1,3 +1,7 @@
+## 2.1.15
+
+- Excludes all @vcmap/ui dependencies from vite optimization, to allow for different versions of the same package in a plugin
+
 ## 2.1.13
 
 - Add `bundle` alias for cli command `pack`. Create will now add "bundle" as script in package.json

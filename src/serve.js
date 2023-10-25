@@ -107,6 +107,24 @@ export default async function serve(options) {
   const proxy = await getProxy(mergedOptions.https ? 'https' : 'http', port);
   const { peerDependencies } = await getPackageJson();
 
+  const optimizationIncludes = [
+    'fast-deep-equal',
+    'rbush',
+    'rbush-knn',
+    'pbf',
+    'semver',
+    '@vcmap-cesium/engine',
+    'vue',
+  ];
+
+  // We exclude ui dependencies from optimization, to allow plugins to use another version of the same plugin.
+  // vitejs seems to have a problem with optimized deps in different versions.
+  const { dependencies } = await getPackageJson(resolveMapUi([]));
+
+  const excludedOptimizations = Object.keys(dependencies).filter(
+    (name) => !optimizationIncludes.includes(name),
+  );
+
   const server = await createServer({
     root: getContext(),
     publicDir: './node_modules/@vcmap/ui/public',
@@ -118,16 +136,14 @@ export default async function serve(options) {
       dedupe: Object.keys(peerDependencies),
     },
     optimizeDeps: {
-      exclude: ['@vcmap/ui', '@vcmap/core', 'ol', 'proj4'],
-      include: [
-        'fast-deep-equal',
-        'rbush',
-        'rbush-knn',
-        'pbf',
-        'semver',
-        '@vcmap-cesium/engine',
-        'vue',
+      exclude: [
+        '@vcmap/ui',
+        '@vcmap/core',
+        'ol',
+        'proj4',
+        ...excludedOptimizations,
       ],
+      include: optimizationIncludes,
     },
     plugins: [vue2(), createConfigJsonReloadPlugin()],
     server: {
