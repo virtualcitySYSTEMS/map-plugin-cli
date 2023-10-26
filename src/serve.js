@@ -119,7 +119,7 @@ export default async function serve(options) {
 
   // We exclude ui dependencies from optimization, to allow plugins to use another version of the same plugin.
   // vitejs seems to have a problem with optimized deps in different versions.
-  const { dependencies } = await getPackageJson(resolveMapUi([]));
+  const { dependencies } = await getPackageJson(resolveMapUi());
 
   const excludedOptimizations = Object.keys(dependencies).filter(
     (name) => !optimizationIncludes.includes(name),

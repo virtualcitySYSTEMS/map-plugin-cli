@@ -1,3 +1,7 @@
+## 2.1.16
+
+- Hotfix for Broken 2.1.15 Update.
+
 ## 2.1.15
 
 - Excludes all @vcmap/ui dependencies from vite optimization, to allow for different versions of the same package in a plugin
