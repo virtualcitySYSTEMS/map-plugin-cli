@@ -92,6 +92,7 @@ export default async function serve(options) {
   }
   const vcmConfigJs = await getVcmConfigJs();
   const mergedOptions = { ...vcmConfigJs, ...options };
+
   await printVcmapUiVersion();
   /*
   // In case @vcmap/ui is linked via git+ssh, dist folder is not available and must be built first
@@ -105,7 +106,7 @@ export default async function serve(options) {
   const port = mergedOptions.port || 8008;
 
   logger.info('Starting development server...');
-  const proxy = await getProxy(mergedOptions.https ? 'https' : 'http', port);
+  const proxy = await getProxy('http', port);
   const { peerDependencies } = await getPackageJson();
 
   const optimizationIncludes = [
@@ -152,7 +153,6 @@ export default async function serve(options) {
     plugins: [vue2(), createConfigJsonReloadPlugin()],
     server: {
       middlewareMode: true,
-      https: mergedOptions.https,
       proxy: { ...mergedOptions.proxy, ...proxy },
     },
     css: {

@@ -26,7 +26,7 @@ program
   .summary('start preview server')
   .defaultOptions()
   .defaultServeOptions()
-  .option('--vcm [url]', 'URL to a virtualcityMAP application', (val) =>
+  .option('--vcm [url]', 'URL to a VC MAP application', (val) =>
     val.replace(/\/$/, ''),
   )
   .safeAction(preview);

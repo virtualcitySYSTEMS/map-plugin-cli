@@ -27,7 +27,7 @@ export const { version, name } = JSON.parse(
 export const promiseExec = util.promisify(childProcess.exec);
 
 /**
- * @typedef {ServeOptions} VcmConfigJs
+ * @typedef {PreviewOptions} VcmConfigJs
  * @property {Object} proxy - see https://vitejs.dev/config/server-options.html#server-proxy
  */
 

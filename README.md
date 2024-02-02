@@ -173,15 +173,18 @@ export default {
 
 The following parameters are valid:
 
-| parameter | type               | description                                                                                   |
-| --------- | ------------------ | --------------------------------------------------------------------------------------------- |
-| config    | string&vert;Object | an optional configObject or fileName to use for configuring the plugin                        |
-| auth      | string             | potential auth string to download assets (index.html, config) with                            |
-| port      | number             | optional alternative port (default 8008)                                                      |
-| https     | boolean            | whether to use http (default) or https                                                        |
-| appConfig | string&vert;Object | an optional configObject resp. fileName or URL to an app config (for `serve` command)         |
-| vcm       | string             | a filename or URL to a map (for `preview` command)                                            |
-| proxy     | Object             | a server proxy (see [vitejs.dev](https://vitejs.dev/config/server-options.html#server-proxy)) |
+| parameter | type               | description                                                                                                               |
+| --------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| config    | string&vert;Object | An optional configObject or fileName to use for configuring the plugin                                                    |
+| auth      | string             | Potential auth string to download assets (index.html, config) with                                                        |
+| port      | number             | Optional alternative port (default 8008)                                                                                  |
+| appConfig | string&vert;Object | An optional configObject resp. fileName or URL to an app config                                                           |
+| vcm       | string             | A filename or URL to a VC Map application. Only works for `preview` command! Takes precedence over `appConfig` parameter. |
+| proxy     | Object             | A server proxy (see [vitejs.dev](https://vitejs.dev/config/server-options.html#server-proxy))                             |
+
+> The `vcm` parameter uses a hosted map application to preview the plugin. The plugin is bundled and added to the application. This parameter is only working for `preview` mode.
+
+> For the `appConfig` option, map and plugin are bundled to create a preview environment. Here only the configuration is loaded from the provided url or object. This parameter is working for both `preview` and `serve` mode.
 
 ## About Peer Dependencies
 
@@ -227,6 +230,24 @@ should be rewritten to:
 
 ```js
 import { Cartesian3 } from '@vcmap-cesium/engine';
+```
+
+### Overwriting Peer Dependencies
+
+If you want to work with a release candidate or a specific branch of @vcmap/core or @vcmap/ui you need to define [overrides](https://docs.npmjs.com/cli/v8/configuring-npm/package-json#overrides) within your plugin's `package.json`.
+This will replace the package(s) in your dependency tree with the corresponding version.
+
+```json
+{
+  "peerDependencies": {
+    "@vcmap/core": "5.1.0-rc.3",
+    "@vcmap/ui": "5.1.0-rc.3"
+  },
+  "overrides": {
+    "@vcmap/core": "5.1.0-rc.3",
+    "@vcmap/ui": "5.1.0-rc.3"
+  }
+}
 ```
 
 ### What about openlayers?

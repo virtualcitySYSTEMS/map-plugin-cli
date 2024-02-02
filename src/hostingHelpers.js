@@ -13,7 +13,6 @@ import { promiseExec, getDirname } from './pluginCliHelper.js';
  * @property {string|Object} [config] - an optional configObject or fileName to use for configuring the plugin
  * @property {string} [auth] - potential auth string to download assets (index.html, config) with
  * @property {number} [port]
- * @property {boolean} [https]
  */
 
 /**
@@ -127,7 +126,7 @@ export async function reWriteAppConfig(appConfig, pluginConfig, production) {
       config.plugins = config.plugins.filter((p) => p.name !== name);
     }
   });
-  appConfig.modules.push({ plugins: [pluginConfig] });
+  appConfig.modules.push({ _id: 'plugin-cli-module', plugins: [pluginConfig] });
 }
 
 /**
@@ -143,7 +142,8 @@ export function getAppConfigJson(appConfig, auth, production, configFile) {
     return Promise.resolve(configMap.get('app.config.json'));
   }
   const isObject = typeof appConfig === 'object' && appConfig !== null;
-  const isWebVcm = !isObject && /^https?:\/\//.test(usedConfig);
+  const isURL = (url) => /^https?:\/\//.test(url);
+  const isWebVcm = !isObject && isURL(usedConfig);
   return new Promise((resolve, reject) => {
     async function handleAppConfig(data) {
       try {
@@ -151,6 +151,15 @@ export function getAppConfigJson(appConfig, auth, production, configFile) {
         configMap.set('app.config.json', appConfigJson);
         const pluginConfig = await getPluginConfig(configFile);
         await reWriteAppConfig(appConfigJson, pluginConfig, production);
+        if (isWebVcm) {
+          // replace relative URLs by absolute ones
+          appConfigJson.modules = appConfigJson.modules.map((m) => {
+            if (typeof m === 'string' && !isURL(m)) {
+              return new URL(m, usedConfig).toString();
+            }
+            return m;
+          });
+        }
         resolve(appConfigJson);
       } catch (e) {
         reject(e);

@@ -24,8 +24,7 @@ Command.prototype.defaultServeOptions = function defaultServeOptions() {
     .option(
       '-c, --config <config>',
       'a config override to not use the default plugin config',
-    )
-    .option('--https', 'use https for serving');
+    );
 
   return this;
 };

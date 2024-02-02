@@ -23,8 +23,8 @@ import setupMapUi from './setupMapUi.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
 
 /**
- * @typedef {HostingOptions} PreviewOptions
- * @property {string} [vcm]
+ * @typedef {ServeOptions} PreviewOptions
+ * @property {string} [vcm] - an optional URL to a VC Map application
  */
 
 /**
@@ -38,12 +38,11 @@ function setAliases(alias, libraryPaths) {
 }
 
 /**
- * @param {string} [hostedVcm]
- * @param {boolean} [https]
+ * @param {VcmConfigJs} options
  * @returns {Promise<import("vite").InlineConfig>}
  */
-async function getServerOptions(hostedVcm, https) {
-  let proxy;
+async function getServerOptions(options) {
+  let proxy = options.proxy || {};
   const normalLibraries = await getLibraryPaths('normal');
   const scopedLibraries = await getLibraryPaths('@scoped/plugin');
   const alias = {
@@ -52,11 +51,24 @@ async function getServerOptions(hostedVcm, https) {
   setAliases(alias, normalLibraries);
   setAliases(alias, scopedLibraries);
 
-  if (hostedVcm) {
+  if (options.vcm) {
+    const proxyOptions = {
+      target: options.vcm,
+      changeOrigin: true,
+      secure: false,
+      configure(httpProxy) {
+        httpProxy.on('proxyRes', (proxyRes) => {
+          delete proxyRes.headers['Content-Security-Policy'];
+          delete proxyRes.headers['content-security-policy'];
+        });
+      },
+    };
+
     proxy = {
-      '^/style.css': hostedVcm,
-      '^/assets': hostedVcm,
-      '^/plugins': hostedVcm,
+      ...proxy,
+      '^/style.css': proxyOptions,
+      '^/assets': proxyOptions,
+      '^/plugins': proxyOptions,
     };
   }
 
@@ -69,7 +81,6 @@ async function getServerOptions(hostedVcm, https) {
     server: {
       middlewareMode: true,
       proxy,
-      https,
     },
   };
 }
@@ -87,18 +98,21 @@ export default async function preview(options) {
     if (!fs.existsSync(resolveMapUi('dist'))) {
       await buildMapUI();
     }
+  } else {
+    logger.info(`Using hosted VC Map application ${mergedOptions.vcm}`);
   }
   checkReservedDirectories();
   await build({ development: false, watch: true });
   const app = express();
   logger.info('Starting preview server...');
-  const server = await createServer(
-    await getServerOptions(mergedOptions.vcm, mergedOptions.https),
-  );
+  const inlineConfig = await getServerOptions(mergedOptions);
+  const server = await createServer(inlineConfig);
 
   addAppConfigRoute(
     app,
-    mergedOptions.vcm ? `${mergedOptions.vcm}/app.config.json` : null,
+    mergedOptions.vcm
+      ? `${mergedOptions.vcm}/app.config.json`
+      : mergedOptions.appConfig,
     mergedOptions.auth,
     mergedOptions.config,
     true,

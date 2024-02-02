@@ -1,3 +1,8 @@
+## 2.1.18
+
+- Fix issues with serve and preview for options vcm, appConfig and proxy
+- Removed protocol option `https`
+
 ## 2.1.17
 
 - Hotfix for Broken 2.1.15/16 Update.
