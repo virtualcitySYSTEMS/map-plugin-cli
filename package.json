@@ -1,6 +1,6 @@
 {
   "name": "@vcmap/plugin-cli",
-  "version": "2.1.17",
+  "version": "2.1.18",
   "description": "A CLI to help develop and build plugins for the VC Map",
   "main": "index.js",
   "type": "module",
