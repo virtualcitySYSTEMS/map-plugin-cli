@@ -5,6 +5,7 @@ import { create, serve, build, pack, preview, update } from './index.js';
 import { version } from './src/pluginCliHelper.js';
 import setupMapUi from './src/setupMapUi.js';
 import buildStagingApp from './src/buildStagingApp.js';
+import ensureTypes from './src/ensureTypes.js';
 
 program.version(version);
 
@@ -12,6 +13,7 @@ program
   .command('create')
   .summary('create new plugin')
   .defaultOptions()
+  .option('-t --typescript', 'Create a plugin using typescript')
   .safeAction(create);
 
 program
@@ -66,5 +68,7 @@ program
     'an optional semver range to update to, e.g. 5.0 (Default is latest)',
   )
   .safeAction(update);
+
+program.command('ensure-types').action(ensureTypes);
 
 program.parse(process.argv);

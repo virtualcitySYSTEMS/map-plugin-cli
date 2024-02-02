@@ -1,6 +1,6 @@
 {
   "name": "@vcmap/plugin-cli",
-  "version": "2.1.18",
+  "version": "3.0.0-rc.0",
   "description": "A CLI to help develop and build plugins for the VC Map",
   "main": "index.js",
   "type": "module",
@@ -42,7 +42,7 @@
     "vue-template-compiler": "~2.7.14"
   },
   "peerDependencies": {
-    "@vcmap/ui": "^5.0.1",
+    "@vcmap/ui": "^5.1.0-rc.2",
     "vue": "~2.7.14"
   },
   "peerDependenciesMeta": {
@@ -54,12 +54,13 @@
     }
   },
   "devDependencies": {
-    "@vcsuite/eslint-config": "^3.0.5",
+    "@vcsuite/eslint-config": "^3.0.6",
     "eslint": "^8.38.0"
   },
   "eslintIgnore": [
     "node_modules",
-    "assets/tests"
+    "assets/tests",
+    "assets/index.ts"
   ],
   "eslintConfig": {
     "extends": "@vcsuite/eslint-config/node",

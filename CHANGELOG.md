@@ -1,3 +1,8 @@
+## 3.0.0
+
+- Breaking: now requires vcmap/ui versions 5.1 and over.
+- Adds support for typescript. New plugins can be created including vcs typescript defaults.
+
 ## 2.1.18
 
 - Fix issues with serve and preview for options vcm, appConfig and proxy

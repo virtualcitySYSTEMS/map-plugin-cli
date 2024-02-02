@@ -21,6 +21,7 @@ import { name, version, promiseExec, getDirname } from './pluginCliHelper.js';
  * @property {string} template
  * @property {Array<string>} peerDeps
  * @property {boolean} gitlabCi
+ * @property {boolean} typescript
  */
 
 /**
@@ -29,6 +30,12 @@ import { name, version, promiseExec, getDirname } from './pluginCliHelper.js';
  * @returns {Object}
  */
 function createPackageJson(options) {
+  const typescriptScripts = options.typescript
+    ? {
+        'type-check': 'vue-tsc --noEmit',
+        'ensure-types': 'vcmplugin ensure-types',
+      }
+    : {};
   return {
     name: options.name,
     version: options.version,
@@ -36,8 +43,11 @@ function createPackageJson(options) {
     type: 'module',
     main: 'src/index.js',
     scripts: Object.assign(
-      { prepublishOnly: 'vcmplugin build' },
+      {
+        prepublishOnly: 'vcmplugin build',
+      },
       ...options.scripts,
+      typescriptScripts,
     ),
     author: options.author,
     license: options.license,
@@ -142,10 +152,12 @@ async function createPluginTemplate(options, pluginPath) {
   const installEsLint = options.scripts.find((script) => script.lint);
   if (installEsLint) {
     packageJson.eslintIgnore = ['node_modules', 'dist', 'plugin-assets'];
-    packageJson.eslintConfig = {
-      root: true,
-      extends: '@vcsuite/eslint-config/vue',
-    };
+    if (!options.typescript) {
+      packageJson.eslintConfig = {
+        root: true,
+        extends: '@vcsuite/eslint-config/vue',
+      };
+    }
     packageJson.prettier = '@vcsuite/eslint-config/prettier.js';
   }
 
@@ -172,9 +184,10 @@ async function createPluginTemplate(options, pluginPath) {
       logger.debug('created src directory');
     }
 
+    const indexFile = options.typescript ? 'index.ts' : 'index.js';
     await fs.promises.copyFile(
-      path.join(getDirname(), '..', 'assets', 'index.js'),
-      path.join(pluginPath, 'src', 'index.js'),
+      path.join(getDirname(), '..', 'assets', indexFile),
+      path.join(pluginPath, 'src', indexFile),
     );
   }
 
@@ -210,6 +223,9 @@ async function createPluginTemplate(options, pluginPath) {
         'resize-observer-polyfill',
         'jsdom',
       );
+    }
+    if (options.typescript) {
+      devDeps.push('typescript', 'vue-tsc');
     }
     await installDeps(devDeps, DepType.DEV, pluginPath);
     logger.success('Installed dependencies');
@@ -280,14 +296,28 @@ async function createPlugin(options) {
   ]);
 
   if (options.gitlabCi) {
+    const gitlabFile = options.typescript
+      ? 'ts.gitlab-ci.yml'
+      : '.gitlab-ci.yml';
     await fs.promises.copyFile(
-      path.join(getDirname(), '..', 'assets', '.gitlab-ci.yml'),
+      path.join(getDirname(), '..', 'assets', gitlabFile),
       path.join(pluginPath, '.gitlab-ci.yml'),
     );
     await fs.promises.cp(
       path.join(getDirname(), '..', 'assets', 'build'),
       path.join(pluginPath, 'build'),
       { recursive: true },
+    );
+  }
+
+  if (options.typescript) {
+    await fs.promises.copyFile(
+      path.join(getDirname(), '..', 'assets', 'tsconfig.json'),
+      path.join(pluginPath, 'tsconfig.json'),
+    );
+    await fs.promises.copyFile(
+      path.join(getDirname(), '..', 'assets', 'eslintrc.cjs'),
+      path.join(pluginPath, '.eslintrc.cjs'),
     );
   }
 
@@ -398,11 +428,26 @@ export default async function create() {
       })),
     },
     {
+      type: 'toggle',
+      name: 'typescript',
+      message: 'Create plugin using typescript (recommended).',
+      initial: true,
+      active: 'yes',
+      inactive: 'no',
+    },
+    {
       type: 'select',
       name: 'template',
       message: 'Choose an existing plugin as template',
       initial: 0,
       choices: templateChoices,
+    },
+    {
+      type: (prev, values) => (values.typescript && prev ? 'confirm' : null),
+      name: 'keepTs',
+      message:
+        'The selected template is not in typescript. You will have to manually transform it. Keep typescript?',
+      initial: true,
     },
     {
       type: 'multiselect',
@@ -433,6 +478,10 @@ export default async function create() {
       process.exit(0);
     },
   });
+
+  if (answers.template && answers.typescript) {
+    answers.typescript = !!answers.keepTs;
+  }
 
   await createPlugin(answers);
 }
