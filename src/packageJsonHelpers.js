@@ -3,7 +3,7 @@ import { writeFile, readFile } from 'fs/promises';
 import { parse, satisfies, validRange } from 'semver';
 import { logger } from '@vcsuite/cli-logger';
 import path from 'path';
-import { getContext } from './context.js';
+import { getContext, resolveContext } from './context.js';
 import { promiseExec } from './pluginCliHelper.js';
 
 /** @type {Object|null} */
@@ -42,17 +42,15 @@ export async function getPluginName() {
 }
 
 /**
+ * Gets the entry of the package
  * @returns {Promise<string>}
  */
-export async function getPluginEntry() {
-  const { main, module, type } = await getPackageJson();
-
-  let entry = type === 'module' ? module : null;
-  entry = entry || main;
-  if (!entry) {
-    throw new Error('Could not determine entry point');
+export async function getEntry() {
+  const isTS = resolveContext('src', 'index.ts');
+  if (existsSync(isTS)) {
+    return 'src/index.ts';
   }
-  return entry;
+  return 'src/index.js';
 }
 
 /**

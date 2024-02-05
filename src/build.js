@@ -1,10 +1,10 @@
 import path from 'path';
-import { rm, mkdir } from 'fs/promises';
-import fs from 'fs';
+import { rm, mkdir } from 'node:fs/promises';
+import fs from 'node:fs';
 import vue2 from '@vitejs/plugin-vue2';
 import vcsOl from '@vcmap/rollup-plugin-vcs-ol';
 import { logger } from '@vcsuite/cli-logger';
-import { getPluginEntry, getPluginName } from './packageJsonHelpers.js';
+import { getEntry, getPluginName } from './packageJsonHelpers.js';
 import { getContext } from './context.js';
 import { executeUiNpm, resolveMapUi } from './hostingHelpers.js';
 
@@ -44,14 +44,7 @@ export async function getLibraryPaths(pluginName) {
  * @returns {Promise<void>}
  */
 export default async function buildModule(options) {
-  const entry = await getPluginEntry();
-  if (path.relative('src', entry).startsWith('.')) {
-    logger.warning(`detected irregular entry ${entry}`);
-    logger.warning(
-      'vuetify component resolution expects source files to be within "src"',
-    );
-  }
-
+  const entry = await getEntry();
   const pluginName = await getPluginName();
   const libraryPaths = await getLibraryPaths(pluginName);
   const distPath = path.join(getContext(), 'dist');

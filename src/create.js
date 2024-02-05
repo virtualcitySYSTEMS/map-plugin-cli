@@ -36,12 +36,13 @@ function createPackageJson(options) {
         'ensure-types': 'vcmplugin ensure-types',
       }
     : {};
+  const main = options.typescript ? 'dist/index.js' : 'src/index.js';
   return {
     name: options.name,
     version: options.version,
     description: options.description,
     type: 'module',
-    main: 'src/index.js',
+    main,
     scripts: Object.assign(
       {
         prepublishOnly: 'vcmplugin build',
@@ -62,7 +63,7 @@ function createPackageJson(options) {
       'CHANGELOG.md',
     ],
     exports: {
-      '.': './src/index.js',
+      '.': options.typescript ? 'dist/index.js' : 'src/index.js',
       './dist': './dist/index.js',
     },
   };

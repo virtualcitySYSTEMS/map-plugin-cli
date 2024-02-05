@@ -18,7 +18,7 @@ The `@vcmap/plugin-cli` helps develop and build plugins for the **VC Map**.
 
 ## Prerequisite
 
-You need [nodejs](https://nodejs.org/en/) 16 and npm installed on your system
+You need [nodejs](https://nodejs.org/en/) 18 and npm installed on your system
 to use this tool.
 
 ## Installation
@@ -51,6 +51,33 @@ All commands have (optional) cli options. Run `vcmplugin --help` or `vcmplugin h
 For `serve` and `preview` you can alternatively define a `vcs.config.js` in your plugin's root directory.
 For more information see [here](#vcm-config-js).
 
+## Folder structure
+
+As of v3, all plugins must follow the same rudimentary folder structure, as depicted below:
+
+```
+-| src/
+-|  index.js
+-| package.json
+-| README.md
+```
+
+And for TS based plugins:
+
+```
+-| src/
+-|  index.ts
+-| package.json
+-| README.md
+-| tsconfig.json
+```
+
+It is important to, not that the entry point for _building_ the plugin (and
+the file which exports the default export for the plugin interface) **MUST** be
+located at `./src/index.js` or `./src/index.ts` respectively. If you have created
+your plugin using any version of the `@vcmap/plugins-cli`, this will already be
+the case.
+
 ### 1. Creating a new plugin
 
 To create a new plugin template, run the following:
@@ -62,7 +89,7 @@ vcmplugin create
 This will open a command prompt helping you to create the basic [structure of a plugin](#vc-map-plugins).
 Be sure to check out the [peer dependecy section](#about-peer-dependencies) as well.
 
-Optionally, in step 7 of the create-prompt you can choose an existing plugin [@vcmap/hello-world](https://www.npmjs.com/package/@vcmap/hello-world) as template.
+Optionally, in the create-prompt you can choose an existing plugin [@vcmap/hello-world](https://www.npmjs.com/package/@vcmap/hello-world) as a template.
 
 ### 2. Serving a plugin for development
 
