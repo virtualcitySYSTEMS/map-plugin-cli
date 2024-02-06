@@ -1,13 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 import prompts from 'prompts';
-import semver from 'semver';
+import { minVersion, parse, valid } from 'semver';
 import tar from 'tar';
 import { logger } from '@vcsuite/cli-logger';
 import { LicenseType, writeLicense } from './licenses.js';
 import { DepType, installDeps, setVcMapVersion } from './packageJsonHelpers.js';
 import { updatePeerDependencies } from './update.js';
-import { name, version, promiseExec, getDirname } from './pluginCliHelper.js';
+import {
+  name,
+  version,
+  promiseExec,
+  getDirname,
+  peerDependencies as cliPeerDependencies,
+} from './pluginCliHelper.js';
 
 /**
  * @typedef {Object} PluginTemplateOptions
@@ -210,7 +216,11 @@ async function createPluginTemplate(options, pluginPath) {
       (obj, key) => ({ ...obj, [key]: 'latest' }),
       {},
     );
-    await updatePeerDependencies(peerDependencies, pluginPath);
+    const { major, minor } = parse(
+      minVersion(cliPeerDependencies['@vcmap/ui']),
+    );
+    const mapVersion = `^${major}.${minor}`;
+    await updatePeerDependencies(peerDependencies, pluginPath, { mapVersion });
     logger.spin('installing dependencies... (this may take a while)');
     const devDeps = [`${name}@${version}`];
     if (installEsLint) {
@@ -398,7 +408,7 @@ export default async function create() {
       name: 'version',
       message: 'Version',
       initial: '1.0.0',
-      validate: (value) => !!semver.valid(value),
+      validate: (value) => !!valid(value),
     },
     {
       type: 'text',

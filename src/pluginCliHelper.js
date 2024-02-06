@@ -17,7 +17,7 @@ export function getDirname() {
  * @type {string} version
  * @type {string} name
  */
-export const { version, name } = JSON.parse(
+export const { version, name, peerDependencies } = JSON.parse(
   fs.readFileSync(path.join(getDirname(), '..', 'package.json')).toString(),
 );
 

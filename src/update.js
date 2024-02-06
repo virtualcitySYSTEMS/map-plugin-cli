@@ -1,5 +1,5 @@
 import { logger } from '@vcsuite/cli-logger';
-import { valid } from 'semver';
+import { validRange } from 'semver';
 import {
   checkVcMapVersion,
   DepType,
@@ -26,7 +26,7 @@ export async function updatePeerDependencies(
   pluginPath,
   options = {},
 ) {
-  if (options.mapVersion && !valid(options.mapVersion)) {
+  if (options.mapVersion && !validRange(options.mapVersion)) {
     logger.error(
       `The mapVersion ${options.mapVersion} is not valid. Using 'latest' instead`,
     );
