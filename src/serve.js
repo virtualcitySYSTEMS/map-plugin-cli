@@ -16,7 +16,7 @@ import {
   printVcmapUiVersion,
   resolveMapUi,
 } from './hostingHelpers.js';
-import { getPackageJson, getPluginName } from './packageJsonHelpers.js';
+import { getPackageJson, getPluginName, isTS } from './packageJsonHelpers.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
 
 /**
@@ -65,6 +65,13 @@ async function getProxy(protocol, port) {
     delete proxy[hasThisPlugin];
   }
 
+  if (isTS()) {
+    proxy['/src/index.js'] = {
+      target: `http://localhost:${port}`,
+      rewrite: () => '/src/index.ts',
+    };
+  }
+
   // exampleData is not part of the @vcmap/ui package and must be proxied therefore
   proxy['^/exampleData'] = {
     target: 'https://raw.githubusercontent.com/virtualcitySYSTEMS/map-ui/main',
@@ -107,6 +114,7 @@ export default async function serve(options) {
 
   logger.info('Starting development server...');
   const proxy = await getProxy('http', port);
+
   const { peerDependencies } = await getPackageJson();
 
   const optimizationIncludes = [

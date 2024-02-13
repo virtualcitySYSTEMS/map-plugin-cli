@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '@vcsuite/cli-logger';
 import { getContext, resolveContext } from './context.js';
-import { getPluginName, getEntry } from './packageJsonHelpers.js';
+import { getPluginName } from './packageJsonHelpers.js';
 import { promiseExec, getDirname } from './pluginCliHelper.js';
 
 /**
@@ -119,7 +119,7 @@ export async function printVcmapUiVersion() {
 export async function reWriteAppConfig(appConfig, pluginConfig, production) {
   const name = await getPluginName();
   pluginConfig.name = name;
-  pluginConfig.entry = production ? 'dist/index.js' : await getEntry();
+  pluginConfig.entry = production ? 'dist/index.js' : 'src/index.js';
   appConfig.modules = appConfig.modules ?? [];
   appConfig.modules.forEach((config) => {
     if (Array.isArray(config.plugins)) {

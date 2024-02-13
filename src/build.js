@@ -44,7 +44,7 @@ export async function getLibraryPaths(pluginName) {
  * @returns {Promise<void>}
  */
 export default async function buildModule(options) {
-  const entry = await getEntry();
+  const entry = getEntry();
   const pluginName = await getPluginName();
   const libraryPaths = await getLibraryPaths(pluginName);
   const distPath = path.join(getContext(), 'dist');

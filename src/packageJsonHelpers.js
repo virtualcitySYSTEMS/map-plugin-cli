@@ -42,12 +42,20 @@ export async function getPluginName() {
 }
 
 /**
- * Gets the entry of the package
- * @returns {Promise<string>}
+ * Whether this is considered a TS plugin or not
+ * @returns {boolean}
  */
-export async function getEntry() {
-  const isTS = resolveContext('src', 'index.ts');
-  if (existsSync(isTS)) {
+export function isTS() {
+  const indexTs = resolveContext('src', 'index.ts');
+  return existsSync(indexTs);
+}
+
+/**
+ * Gets the entry of the package
+ * @returns {string}
+ */
+export function getEntry() {
+  if (isTS()) {
     return 'src/index.ts';
   }
   return 'src/index.js';
