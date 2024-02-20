@@ -1,3 +1,7 @@
+## 3.0.1
+
+- Fixes an issue where typescript projects did not work anymore with @vcmap/ui 5.1.1
+
 ## 3.0.0
 
 - Breaking: now requires vcmap/ui versions 5.1 and over.
