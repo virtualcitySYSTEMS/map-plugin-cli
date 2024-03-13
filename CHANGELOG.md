@@ -1,6 +1,7 @@
 ## 3.0.2
 
 - Change loading order of modules: Dev plugin is now always loaded in first module.
+- Adds a new spec testing for VcsPlugin Interface conformance
 
 ## 3.0.1
 

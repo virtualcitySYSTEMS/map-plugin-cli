@@ -60,6 +60,7 @@
   "eslintIgnore": [
     "node_modules",
     "assets/tests",
+    "assets/testsTypescript",
     "assets/index.ts"
   ],
   "eslintConfig": {

@@ -205,9 +205,23 @@ async function createPluginTemplate(options, pluginPath) {
       path.join(pluginPath, 'tests'),
       { recursive: true },
     );
+    if (options.typescript) {
+      await fs.promises.rm(
+        path.join(pluginPath, 'tests', 'vcsPluginInterface.spec.js'),
+      );
+      await fs.promises.cp(
+        path.join(getDirname(), '..', 'assets', 'testsTypescript'),
+        path.join(pluginPath, 'tests'),
+        { recursive: true },
+      );
+    }
     await fs.promises.copyFile(
       path.join(getDirname(), '..', 'assets', 'vitest.config.js'),
       path.join(pluginPath, 'vitest.config.js'),
+    );
+    await fs.promises.copyFile(
+      path.join(getDirname(), '..', 'assets', 'eslintrcTests.cjs'),
+      path.join(pluginPath, '.eslintrc.cjs'),
     );
   }
 
