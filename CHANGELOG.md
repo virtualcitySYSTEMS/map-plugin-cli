@@ -1,3 +1,7 @@
+## 3.0.2
+
+- Change loading order of modules: Dev plugin is now always loaded in first module.
+
 ## 3.0.1
 
 - Fixes an issue where typescript projects did not work anymore with @vcmap/ui 5.1.1

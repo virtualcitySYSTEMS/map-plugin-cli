@@ -126,7 +126,10 @@ export async function reWriteAppConfig(appConfig, pluginConfig, production) {
       config.plugins = config.plugins.filter((p) => p.name !== name);
     }
   });
-  appConfig.modules.push({ _id: 'plugin-cli-module', plugins: [pluginConfig] });
+  appConfig.modules = [
+    { _id: 'plugin-cli-module', plugins: [pluginConfig] },
+    ...appConfig.modules,
+  ];
 }
 
 /**
