@@ -64,9 +64,9 @@ export default async function buildStagingApp() {
     vcmConfigJs.config,
   );
   // update Entry
-  const pluginConfig = appConfig.modules
-    .at(-1)
-    .plugins.find((p) => p.name === pluginName);
+  const pluginConfig = appConfig.modules[0].plugins.find(
+    (p) => p.name === pluginName,
+  );
   if (pluginConfig) {
     pluginConfig.entry = `plugins/${pluginName}/index.js`;
   }

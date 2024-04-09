@@ -1,3 +1,7 @@
+## 3.0.3
+
+- Fix changed loading order in buildStagingApp
+
 ## 3.0.2
 
 - Change loading order of modules: Dev plugin is now always loaded in first module.
