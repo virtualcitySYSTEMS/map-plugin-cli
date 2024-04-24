@@ -1,3 +1,7 @@
+## 3.1.0
+
+- Update to @vcmap/ui@5.2.0
+
 ## 3.0.3
 
 - Fix changed loading order in buildStagingApp
