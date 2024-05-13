@@ -82,6 +82,14 @@ describe('VcsPlugin Interface test', () => {
     it('may implement initialize', () => {
       if (pluginInstance?.initialize) {
         expect(pluginInstance.initialize).to.be.a('function');
+        expect(pluginInstance.initialize(new VcsUiApp(), undefined)).to.not
+          .throw;
+      }
+    });
+    it('may implement onVcsAppMounted', () => {
+      if (pluginInstance?.onVcsAppMounted) {
+        expect(pluginInstance.onVcsAppMounted).to.be.a('function');
+        expect(pluginInstance.onVcsAppMounted(new VcsUiApp())).to.not.throw;
       }
     });
     it('should implement destroy', () => {

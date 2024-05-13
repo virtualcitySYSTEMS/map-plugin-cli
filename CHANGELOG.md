@@ -1,3 +1,7 @@
+## 3.1.2
+
+- adds check to VcsPluginInterface.spec that initialize and onVcsAppMounted do not throw
+
 ## 3.1.0
 
 - Update to @vcmap/ui@5.2.0
