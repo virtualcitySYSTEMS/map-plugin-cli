@@ -74,9 +74,10 @@ export const DepType = {
  * @param {Array<string>} deps
  * @param {DepType} type
  * @param {string} pluginPath
+ * @param {boolean} [force=false]
  * @returns {Promise<void>}
  */
-export async function installDeps(deps, type, pluginPath) {
+export async function installDeps(deps, type, pluginPath, force = false) {
   if (deps.length < 1) {
     return;
   }
@@ -86,6 +87,11 @@ export async function installDeps(deps, type, pluginPath) {
   } else if (type === DepType.DEV) {
     save = '--save-dev';
   }
+
+  if (force) {
+    save = `${save} --force`;
+  }
+
   const installCmd = `npm i ${save} ${deps.map((d) => `"${d}"`).join(' ')}`; // wrap deps with "" for windows
   logger.debug(installCmd);
   const { stdout, stderr } = await promiseExec(installCmd, { cwd: pluginPath });

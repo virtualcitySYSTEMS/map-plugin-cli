@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { readFile } from 'fs/promises';
 import { createServer } from 'vite';
-import vue2 from '@vitejs/plugin-vue2';
+import vue from '@vitejs/plugin-vue';
 import express from 'express';
 import { logger } from '@vcsuite/cli-logger';
 import path from 'path';
@@ -158,7 +158,7 @@ export default async function serve(options) {
       ],
       include: optimizationIncludes,
     },
-    plugins: [vue2(), createConfigJsonReloadPlugin()],
+    plugins: [vue(), createConfigJsonReloadPlugin()],
     server: {
       middlewareMode: true,
       proxy: { ...mergedOptions.proxy, ...proxy },

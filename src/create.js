@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import prompts from 'prompts';
-import { minVersion, parse, valid } from 'semver';
+import { minVersion, parse, prerelease, valid } from 'semver';
 import tar from 'tar';
 import { logger } from '@vcsuite/cli-logger';
 import { LicenseType, writeLicense } from './licenses.js';
@@ -164,6 +164,11 @@ async function createPluginTemplate(options, pluginPath) {
         root: true,
         extends: '@vcsuite/eslint-config/vue',
       };
+    } else {
+      await fs.promises.copyFile(
+        path.join(getDirname(), '..', 'assets', 'eslintrc.cjs'),
+        path.join(pluginPath, '.eslintrc.cjs'),
+      );
     }
     packageJson.prettier = '@vcsuite/eslint-config/prettier.js';
   }
@@ -214,14 +219,14 @@ async function createPluginTemplate(options, pluginPath) {
         path.join(pluginPath, 'tests'),
         { recursive: true },
       );
+      await fs.promises.copyFile(
+        path.join(getDirname(), '..', 'assets', 'eslintrcTests.cjs'),
+        path.join(pluginPath, '.eslintrc.cjs'),
+      );
     }
     await fs.promises.copyFile(
       path.join(getDirname(), '..', 'assets', 'vitest.config.js'),
       path.join(pluginPath, 'vitest.config.js'),
-    );
-    await fs.promises.copyFile(
-      path.join(getDirname(), '..', 'assets', 'eslintrcTests.cjs'),
-      path.join(pluginPath, '.eslintrc.cjs'),
     );
   }
 
@@ -230,11 +235,30 @@ async function createPluginTemplate(options, pluginPath) {
       (obj, key) => ({ ...obj, [key]: 'latest' }),
       {},
     );
-    const { major, minor } = parse(
-      minVersion(cliPeerDependencies['@vcmap/ui']),
-    );
-    const mapVersion = `^${major}.${minor}`;
-    await updatePeerDependencies(peerDependencies, pluginPath, { mapVersion });
+
+    if (cliPeerDependencies['@vcmap/ui'].startsWith('git')) {
+      logger.warning('installing git ui peer dependency');
+      const peerDeps = [
+        cliPeerDependencies['@vcmap/ui'],
+        ...Object.keys(peerDependencies),
+      ];
+      await installDeps(peerDeps, DepType.PEER, pluginPath);
+    } else {
+      let mapVersion;
+      const mapSemver = parse(minVersion(cliPeerDependencies['@vcmap/ui']));
+      if (prerelease(mapSemver)) {
+        const { major, minor, patch } = mapSemver;
+        mapVersion = `^${major}.${minor}.${patch}-rc`;
+      } else {
+        const { major, minor } = mapSemver;
+        mapVersion = `^${major}.${minor}`;
+      }
+
+      await updatePeerDependencies(peerDependencies, pluginPath, {
+        mapVersion,
+      });
+    }
+
     logger.spin('installing dependencies... (this may take a while)');
     const devDeps = [`${name}@${version}`];
     if (installEsLint) {

@@ -1,17 +1,18 @@
 import { logger } from '@vcsuite/cli-logger';
-import { validRange } from 'semver';
+import { validRange, prerelease } from 'semver';
 import {
   checkVcMapVersion,
   DepType,
   getPackageJson,
   installDeps,
 } from './packageJsonHelpers.js';
-import { name, promiseExec } from './pluginCliHelper.js';
+import { name, version, promiseExec } from './pluginCliHelper.js';
 import { getContext } from './context.js';
 
 /**
  * @typedef {Object} UpdateOptions
  * @property {string} [mapVersion] - Optional version of @vcmap/ui to update to. Default is latest
+ * @property {boolean} [force] - Force install
  */
 
 /**
@@ -46,7 +47,7 @@ export async function updatePeerDependencies(
     peerDeps.push(...pluginPeerDeps);
   }
   logger.spin('Updating peer dependencies');
-  await installDeps(peerDeps, DepType.PEER, pluginPath);
+  await installDeps(peerDeps, DepType.PEER, pluginPath, options.force);
   logger.stopSpinner();
   logger.success('Updated peer dependencies');
 }
@@ -58,7 +59,11 @@ export async function updatePeerDependencies(
  */
 async function updateCli(pluginPath) {
   logger.spin(`Updating ${name}`);
-  await installDeps([`${name}@latest`], DepType.DEV, pluginPath);
+  let versionToUse = 'latest';
+  if (prerelease(version)) {
+    versionToUse = `^${version}`;
+  }
+  await installDeps([`${name}@${versionToUse}`], DepType.DEV, pluginPath, true);
   logger.stopSpinner();
   logger.success(`Updated ${name}`);
 }
@@ -72,8 +77,11 @@ async function updateCli(pluginPath) {
 export default async function update(options) {
   const packageJson = await getPackageJson();
   const context = getContext();
-  await updatePeerDependencies(packageJson.peerDependencies, context, options);
-  await checkVcMapVersion(context);
   await updateCli(context);
+  await updatePeerDependencies(packageJson.peerDependencies, context, {
+    force: true,
+    ...options,
+  });
+  await checkVcMapVersion(context);
   logger.success(`Updated plugin ${packageJson.name}`);
 }

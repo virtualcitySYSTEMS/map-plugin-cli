@@ -13,11 +13,7 @@ import {
   printVcmapUiVersion,
   resolveMapUi,
 } from './hostingHelpers.js';
-import build, {
-  buildMapUI,
-  getDefaultConfig,
-  getLibraryPaths,
-} from './build.js';
+import build, { buildMapUI, getDefaultConfig } from './build.js';
 import { getContext } from './context.js';
 import setupMapUi from './setupMapUi.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
@@ -28,28 +24,11 @@ import { getVcmConfigJs } from './pluginCliHelper.js';
  */
 
 /**
- * @param {Object<string, string>} alias
- * @param {Object<string, string>} libraryPaths
- */
-function setAliases(alias, libraryPaths) {
-  Object.values(libraryPaths).forEach((entry) => {
-    alias[entry] = entry.replace(/(..\/)*assets/, '/assets');
-  });
-}
-
-/**
  * @param {VcmConfigJs} options
  * @returns {Promise<import("vite").InlineConfig>}
  */
 async function getServerOptions(options) {
   let proxy = options.proxy || {};
-  const normalLibraries = await getLibraryPaths('normal');
-  const scopedLibraries = await getLibraryPaths('@scoped/plugin');
-  const alias = {
-    '@cesium/engine': '@vcmap-cesium/engine',
-  };
-  setAliases(alias, normalLibraries);
-  setAliases(alias, scopedLibraries);
 
   if (options.vcm) {
     const proxyOptions = {
@@ -75,13 +54,30 @@ async function getServerOptions(options) {
   return {
     publicDir: false,
     plugins: [createConfigJsonReloadPlugin()],
+
     resolve: {
-      alias,
+      alias: [
+        {
+          find: /(\.\.\/)+assets(.*)/,
+          replacement: '/assets$2',
+          customResolver: {
+            resolveId(source) {
+              return source;
+            },
+          },
+        },
+        {
+          find: '@cesium/engine',
+          replacement: '@vcmap-cesium/engine',
+        },
+      ],
     },
     server: {
+      preTransformRequests: false,
       middlewareMode: true,
       proxy,
     },
+    appType: 'custom',
   };
 }
 

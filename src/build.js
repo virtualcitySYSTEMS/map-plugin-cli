@@ -1,7 +1,7 @@
 import path from 'path';
 import { rm, mkdir } from 'node:fs/promises';
 import fs from 'node:fs';
-import vue2 from '@vitejs/plugin-vue2';
+import vue from '@vitejs/plugin-vue';
 import vcsOl from '@vcmap/rollup-plugin-vcs-ol';
 import { logger } from '@vcsuite/cli-logger';
 import { getEntry, getPluginName } from './packageJsonHelpers.js';
@@ -19,7 +19,7 @@ import { executeUiNpm, resolveMapUi } from './hostingHelpers.js';
 export function getDefaultConfig() {
   return {
     publicDir: false,
-    plugins: [vue2(), vcsOl()],
+    plugins: [vue(), vcsOl()],
   };
 }
 
