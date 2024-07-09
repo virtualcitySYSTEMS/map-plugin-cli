@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { logger } from '@vcsuite/cli-logger';
+import { LOG_LEVEL, logger } from '@vcsuite/cli-logger';
 import { setContext } from './context.js';
 
 Command.prototype.defaultOptions = function defaultOptions() {
@@ -10,6 +10,16 @@ Command.prototype.defaultOptions = function defaultOptions() {
       setContext(value);
       return value;
     },
+  );
+
+  this.option(
+    '--log-level [LOG_LEVEL]',
+    'debug logging',
+    (value) => {
+      logger.setLevel(value);
+      return value;
+    },
+    LOG_LEVEL.INFO,
   );
 
   return this;

@@ -1,3 +1,8 @@
+## 4.0.0
+
+- major update to @vcmap/ui 6.0, including vue3 & vuetify 3.
+- adds the `--log-level` argument to the CLI.
+
 ## 3.1.2
 
 - adds check to VcsPluginInterface.spec that initialize and onVcsAppMounted do not throw
