@@ -247,8 +247,7 @@ async function createPluginTemplate(options, pluginPath) {
       let mapVersion;
       const mapSemver = parse(minVersion(cliPeerDependencies['@vcmap/ui']));
       if (prerelease(mapSemver)) {
-        const { major, minor, patch } = mapSemver;
-        mapVersion = `^${major}.${minor}.${patch}-rc`;
+        mapVersion = mapSemver.version;
       } else {
         const { major, minor } = mapSemver;
         mapVersion = `^${major}.${minor}`;
