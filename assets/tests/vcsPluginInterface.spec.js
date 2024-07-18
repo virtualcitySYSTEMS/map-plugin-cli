@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { VcsUiApp, loadPlugin } from '@vcmap/ui';
+import { VcsUiApp, loadPlugin, isValidPackageName } from '@vcmap/ui';
 import plugin from '../src/index.js';
 import packageJSON from '../package.json';
 
@@ -30,8 +30,9 @@ describe('VcsPlugin Interface test', () => {
   });
 
   describe('name, version, mapVersion', () => {
-    it('should return the plugin name from the package.json', () => {
+    it('should return a valid plugin name from the package.json', () => {
       expect(pluginInstance).to.have.property('name', packageJSON.name);
+      expect(isValidPackageName(pluginInstance.name)).to.be.true;
     });
     it('should return the plugin version from the package.json', () => {
       expect(pluginInstance).to.have.property('version', packageJSON.version);

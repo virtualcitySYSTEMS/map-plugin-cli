@@ -54,7 +54,8 @@ publish:
     - git push git@gitlab:vcsuite/npm/vcmap/plugin-cli.git $TAG
     - git push git@gitlab:vcsuite/npm/vcmap/plugin-cli.git HEAD:$CI_COMMIT_REF_NAME
     - npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
-    - npm publish --registry https://registry.npmjs.org
+    - NPM_TAG=$([ $PUBLISH == "prerelease" ] && echo "dev" || echo "latest")
+    - npm publish --registry https://registry.npmjs.org --tag NPM_TAG
   before_script:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
