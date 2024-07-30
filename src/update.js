@@ -32,7 +32,11 @@ export async function updatePeerDependencies(
     );
     options.mapVersion = 'latest';
   }
-  const { stdout, stderr } = await promiseExec('npm view @vcmap/ui --json');
+  let viewCmd = 'npm view @vcmap/ui --json';
+  if (options.mapVersion) {
+    viewCmd = `npm view @vcmap/ui@${options.mapVersion} --json`;
+  }
+  const { stdout, stderr } = await promiseExec(viewCmd);
   logger.error(stderr);
   const { name: mapName, peerDependencies: mapPeer } = JSON.parse(stdout);
   const peerDeps = [`${mapName}@${options.mapVersion || 'latest'}`]; // @vcmap/ui is a required peer dep and will be updated in any case
