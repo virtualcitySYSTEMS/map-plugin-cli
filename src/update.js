@@ -1,5 +1,5 @@
 import { logger } from '@vcsuite/cli-logger';
-import { validRange } from 'semver';
+import { maxSatisfying, validRange } from 'semver';
 import {
   checkVcMapVersion,
   DepType,
@@ -32,13 +32,26 @@ export async function updatePeerDependencies(
     );
     options.mapVersion = 'latest';
   }
-  let viewCmd = 'npm view @vcmap/ui --json';
+  let viewCmd = 'npm view @vcmap/ui --json peerDependencies version name';
   if (options.mapVersion) {
-    viewCmd = `npm view @vcmap/ui@${options.mapVersion} --json`;
+    viewCmd = `npm view @vcmap/ui@${options.mapVersion} --json peerDependencies version name`;
   }
   const { stdout, stderr } = await promiseExec(viewCmd);
   logger.error(stderr);
-  const { name: mapName, peerDependencies: mapPeer } = JSON.parse(stdout);
+  const npmVersions = JSON.parse(stdout);
+  let npmVersion = null;
+  if (Array.isArray(npmVersions)) {
+    const versions = npmVersions.map((v) => v.version);
+    const versionToUse = maxSatisfying(versions, options.mapVersion);
+    npmVersion = npmVersions.find((v) => v.version === versionToUse);
+  } else {
+    npmVersion = npmVersions;
+  }
+  if (!npmVersion) {
+    console.log(`could not find @vcmap/ui version for ${options.mapVersion}`);
+    return;
+  }
+  const { name: mapName, peerDependencies: mapPeer } = npmVersion;
   const peerDeps = [`${mapName}@${options.mapVersion || 'latest'}`]; // @vcmap/ui is a required peer dep and will be updated in any case
   if (pluginPeer) {
     const pluginPeerDeps = Object.keys(pluginPeer)

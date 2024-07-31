@@ -1,3 +1,7 @@
+## 3.1.5
+
+- fix Bug where requesting npm information for a version range was returning an Array
+
 ## 3.1.4
 
 - take mapVersion into account on finding the correct peerDependencies
