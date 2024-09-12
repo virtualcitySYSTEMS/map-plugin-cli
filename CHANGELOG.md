@@ -2,6 +2,7 @@
 
 - major update to @vcmap/ui 6.0, including vue3 & vuetify 3.
 - adds the `--log-level` argument to the CLI.
+- calling `update` will also update certain dev dependencies: typescript, vue-tsc, vitest & vitest/coverage.
 
 ## 3.1.2
 

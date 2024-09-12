@@ -58,7 +58,7 @@ async function getServerOptions(options) {
     resolve: {
       alias: [
         {
-          find: /(\.\.\/)+assets(.*)/,
+          find: /(\.\.?\/)+assets(.*)/,
           replacement: '/assets$2',
           customResolver: {
             resolveId(source) {

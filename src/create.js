@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import prompts from 'prompts';
 import { minVersion, parse, prerelease, valid } from 'semver';
-import tar from 'tar';
+import * as tar from 'tar';
 import { logger } from '@vcsuite/cli-logger';
 import { LicenseType, writeLicense } from './licenses.js';
 import { DepType, installDeps, setVcMapVersion } from './packageJsonHelpers.js';

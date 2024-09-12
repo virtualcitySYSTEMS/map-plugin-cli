@@ -5,6 +5,7 @@ import {
   DepType,
   getPackageJson,
   installDeps,
+  isTS,
 } from './packageJsonHelpers.js';
 import { name, version, promiseExec } from './pluginCliHelper.js';
 import { getContext } from './context.js';
@@ -13,6 +14,8 @@ import { getContext } from './context.js';
  * @typedef {Object} UpdateOptions
  * @property {string} [mapVersion] - Optional version of @vcmap/ui to update to. Default is latest
  * @property {boolean} [force] - Force install
+ * @property {boolean} [updateDev] - update typescript & vue-tsc
+ * @property {Object} [pluginDev] - provide if providing updateDev
  */
 
 /**
@@ -39,7 +42,11 @@ export async function updatePeerDependencies(
   }
   const { stdout, stderr } = await promiseExec(viewCmd);
   logger.error(stderr);
-  const { name: mapName, peerDependencies: mapPeer } = JSON.parse(stdout);
+  const {
+    name: mapName,
+    peerDependencies: mapPeer,
+    devDependencies: mapDev,
+  } = JSON.parse(stdout);
   const peerDeps = [`${mapName}@${options.mapVersion || 'latest'}`]; // @vcmap/ui is a required peer dep and will be updated in any case
   if (pluginPeer) {
     const pluginPeerDeps = Object.keys(pluginPeer)
@@ -52,8 +59,36 @@ export async function updatePeerDependencies(
   }
   logger.spin('Updating peer dependencies');
   await installDeps(peerDeps, DepType.PEER, pluginPath, options.force);
+
+  if (options.updateDev && options.pluginDev) {
+    logger.spin('Updating dev dependencies');
+    const devDeps = [];
+    if (isTS()) {
+      if (mapDev.typescript) {
+        devDeps.push(`typescript@${mapDev.typescript}`);
+      }
+      if (mapDev['vue-tsc']) {
+        devDeps.push(`vue-tsc@${mapDev['vue-tsc']}`);
+      }
+    }
+
+    if (options.pluginDev?.vitest && mapDev.vitest) {
+      devDeps.push(`vitest@${mapDev.vitest}`);
+    }
+
+    if (
+      options.pluginDev?.['@vitest/coverage-v8'] &&
+      mapDev['@vitest/coverage-v8']
+    ) {
+      devDeps.push(`@vitest/coverage-v8@${mapDev['@vitest/coverage-v8']}`);
+    }
+
+    await installDeps(devDeps, DepType.DEV, pluginPath, options.force);
+  }
   logger.stopSpinner();
-  logger.success('Updated peer dependencies');
+  logger.success(
+    `Updated peer${options.updateDev ? ' & dev' : ''} dependencies`,
+  );
 }
 
 /**
@@ -84,6 +119,8 @@ export default async function update(options) {
   await updateCli(context);
   await updatePeerDependencies(packageJson.peerDependencies, context, {
     force: true,
+    updateDev: true,
+    pluginDev: packageJson.devDependencies,
     ...options,
   });
   await checkVcMapVersion(context);

@@ -163,14 +163,6 @@ export default async function serve(options) {
       middlewareMode: true,
       proxy: { ...mergedOptions.proxy, ...proxy },
     },
-    css: {
-      preprocessorOptions: {
-        sass: {
-          additionalData:
-            "\n@import './node_modules/@vcmap/ui/src/styles/variables.scss'\n",
-        },
-      },
-    },
   });
 
   addAppConfigRoute(

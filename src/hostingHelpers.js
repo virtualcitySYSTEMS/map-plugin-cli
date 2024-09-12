@@ -6,7 +6,7 @@ import path from 'path';
 import { logger } from '@vcsuite/cli-logger';
 import { getContext, resolveContext } from './context.js';
 import { getPluginName } from './packageJsonHelpers.js';
-import { promiseExec, getDirname } from './pluginCliHelper.js';
+import { promiseExec } from './pluginCliHelper.js';
 
 /**
  * @typedef {Object} HostingOptions
@@ -299,7 +299,7 @@ export async function addConfigRoute(app) {
 export async function getMapUiIndexHtml(production) {
   const indexHtmlFileName = production
     ? resolveMapUi('dist', 'index.html')
-    : path.join(getDirname(), '..', 'assets', 'index.html');
+    : resolveMapUi('index.html');
   const buffer = await fs.promises.readFile(indexHtmlFileName);
   return buffer.toString();
 }

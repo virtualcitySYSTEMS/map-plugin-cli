@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import tar from 'tar';
+import * as tar from 'tar';
 import { pipeline } from 'stream';
 import { createGzip } from 'zlib';
 import { rm } from 'fs/promises';
