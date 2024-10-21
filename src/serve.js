@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { readFile } from 'fs/promises';
+import { lstat, readFile } from 'fs/promises';
 import { createServer } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import express from 'express';
@@ -101,6 +101,8 @@ export default async function serve(options) {
   const mergedOptions = { ...vcmConfigJs, ...options };
 
   await printVcmapUiVersion();
+  const uiLStat = await lstat(resolveMapUi());
+
   /*
   // In case @vcmap/ui is linked via git+ssh, dist folder is not available and must be built first
   // Currently not needed, keep it here if the same problem happens again
@@ -147,6 +149,7 @@ export default async function serve(options) {
         tinyqueue: 'tinyqueue/tinyqueue.js',
       },
       dedupe: Object.keys(peerDependencies),
+      preserveSymlinks: uiLStat.isSymbolicLink(),
     },
     optimizeDeps: {
       exclude: [
@@ -157,6 +160,13 @@ export default async function serve(options) {
         ...excludedOptimizations,
       ],
       include: optimizationIncludes,
+    },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler', // or "modern", "legacy"
+        },
+      },
     },
     plugins: [vue(), createConfigJsonReloadPlugin()],
     server: {

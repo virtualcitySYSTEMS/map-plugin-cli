@@ -9,18 +9,16 @@ function sleep(ms = 0): Promise<void> {
   });
 }
 
-type TestPluginInstance = VcsPlugin<Record<never, never>, Record<never, never>>;
+type TestPluginInstance = VcsPlugin<object, object>;
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+// @ts-expect-error: not defined on global
 window.VcsPluginLoaderFunction = (
   name: string,
   module: string,
 ): {
   default: () => TestPluginInstance;
 } => ({
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error: interface may not use this
   default: () => plugin({ name }, module),
 });
 

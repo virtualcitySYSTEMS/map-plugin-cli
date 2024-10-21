@@ -17,8 +17,7 @@ const configTest = defineConfig({
     },
     environment: 'jsdom',
     setupFiles: ['tests/setup.js'],
-    isolate: false,
-    threads: false,
+    pool: 'forks',
   },
 });
 export default configTest;
