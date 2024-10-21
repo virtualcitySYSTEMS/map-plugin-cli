@@ -2,9 +2,9 @@
 
 > Part of the [VC Map Project](https://github.com/virtualcitySYSTEMS/map-ui)
 
-> **Note: This documentation is for version 2, compatible with the [VC Map](https://github.com/virtualcitySYSTEMS/map-ui) v5.
-> For documentation on version 1 compatible with VC Map v4, see [this tag](https://github.com/virtualcitySYSTEMS/map-plugin-cli/tree/v1.1.1)
-> and be sure to install using `npm i -g @vcmap/plugin-cli@^1.1.0`**
+> Note: This documentation is for version @vcmap/ui 6.0.0, compatible with the [VC Map](https://github.com/virtualcitySYSTEMS/map-ui).
+>
+> [Migration Guide](https://github.com/virtualcitySYSTEMS/map-ui/blob/release-v6.0/MIGRATION_V6.md) for Plugins from @vcmap/ui 5.0.0
 
 The `@vcmap/plugin-cli` helps develop and build plugins for the **VC Map**.
 
@@ -18,7 +18,7 @@ The `@vcmap/plugin-cli` helps develop and build plugins for the **VC Map**.
 
 ## Prerequisite
 
-You need [nodejs](https://nodejs.org/en/) 18 and npm installed on your system
+You need [nodejs](https://nodejs.org/en/) 20 and npm installed on your system
 to use this tool.
 
 ## Installation
@@ -161,21 +161,25 @@ To build your project, run the following from within your projects root:
 npx vcmplugin build
 ```
 
-This will build your application and place it in the `dist` directory.
+This will build your plugin and place it in the `dist` directory.
 
 ### 6. Integrating a plugin in a productive VC MAP
 
-To pack your project for productive use, run the following from within your projects root:
+To bundle your project for productive use, run the following from within your projects root:
 
 ```bash
-npx vcmplugin pack
+npx vcmplugin bundle
 ```
 
-This will create a folder `dist` with a zip file containing your bundled code and assets.
-To use the plugin productively in a hosted map,
-unzip this file on your server to `{vcm-root}/plugins` and add
-an entry to your VC MAP `config` plugins section. This zip file can also be unzipped
-in the VC Publishers `plugins` public directory.
+This will create a `dist` folder with your bundled code and assets.
+
+Using the VC Publisher you can simply upload the `tar.gz` file from the dist folder within your administration "Map Plugins" tab.
+Afterward you can add the plugin to your app using the app-configurator.
+
+Without using the VC Publisher you can also deploy a plugin manually:
+
+- Unzip the `tar.gz` on a server
+- Add the plugin to a module configuration plugins section, specifying a `name` and `entry` property (path to the plugin location)
 
 ## vcm config js
 
@@ -339,22 +343,33 @@ configuration of the plugin as its first argument and the base URL (without the 
 from which the plugin was loaded as its second argument.
 
 ```typescript
-declare type PluginConfigEditor = {
-  component: VueComponent;
+declare type PluginConfigEditorComponent<C extends Object> = VueComponent<{
+  getConfig(): C;
+  setConfig(config?: C): void;
+}>;
+
+declare type PluginConfigEditor<C extends Object> = {
+  component: PluginConfigEditorComponent<C>;
+  title?: string;
   collectionName?: string;
   itemName?: string;
+  infoUrlCallback?: () => string;
 };
 
 declare interface VcsPlugin<T extends Object, S extends Object> {
   readonly name: string;
   readonly version: string;
-  initialize(app: VcsUiApp, state?: S): Promise<void>;
-  onVcsAppMounted(app: VcsUiApp): Promise<void>;
-  getState(): Promise<S>;
-  toJSON(): Promise<T>;
-  getDefaultOptions(): T;
-  getConfigEditors(): Array<PluginConfigEditor>;
-  destroy(): void;
+  readonly mapVersion: string;
+  i18n?: {
+    [x: string]: unknown;
+  };
+  initialize?: (app: VcsUiApp, state?: S) => Promise<void>;
+  onVcsAppMounted?: (app: VcsUiApp) => Promise<void>;
+  toJSON?: () => T;
+  getDefaultOptions?: () => T;
+  getState?: () => S | Promise<S>;
+  getConfigEditors?: () => Array<PluginConfigEditor<object>>;
+  destroy?: () => void;
 }
 
 declare function defaultExport<T extends Object, S extends Object>(
@@ -400,6 +415,95 @@ export default function defaultExport(config, baseUrl) {
     destroy() {},
   };
 }
+```
+
+### Plugin Config Editor
+
+Part of the [plugin interface](#plugin-interface) is the option to provide one or more custom config editors.
+These config editors will be used in the VC Publisher to define the configuration of a plugin or a plugin custom class, like a custom layer or feature info.
+If a plugin does not provide a config editor, the JsonEditor is always used as fallback.
+
+To provide a custom editor, the plugin has to implement a `getConfigEditors` method returning one or more editors.
+A plugin config editor definition consists of
+
+- component: The vue component providing the ui of the editor. This vue component has to extend the `AbstractConfigEditor.vue`, which can be imported from `@vcmap/ui`. The component has to provide two props: `getConfig` for getting the serialized configuration and `setConfig` to update the changed configuration.
+- title: An optional title displayed in the window header of the editor and on action buttons (e.g. tooltip)
+- collectionName: The collection the item belongs to. Default is `plugins` collection. For a layer config editor you would provide `layers`.
+- itemName: The item the editor can be used for. Can be a name or className. Default is the plugin's name. For a layer you would provide `MyNewLayer.className`.
+- infoUrlCallback: An optional function returning an url referencing help or further information regarding the config editor.
+
+An example of plugin config editor can look like this:
+
+```vue
+<template>
+  <AbstractConfigEditor @submit="apply" v-bind="{ ...$attrs, ...$props }">
+    <VcsFormSection heading="general" expandable :start-open="true">
+      <v-container class="py-0 px-1">
+        <v-row no-gutters>
+          <v-col>
+            <VcsLabel html-for="someProp">
+              {{ $t('myPlugin.someProp') }}
+            </VcsLabel>
+          </v-col>
+          <v-col>
+            <VcsTextField id="someProp" v-model="localConfig.someProp" />
+          </v-col>
+        </v-row>
+      </v-container>
+    </VcsFormSection>
+  </AbstractConfigEditor>
+</template>
+
+<script>
+  import { VContainer, VRow, VCol } from 'vuetify/components';
+  import {
+    AbstractConfigEditor,
+    VcsFormSection,
+    VcsLabel,
+    VcsTextField,
+  } from '@vcmap/ui';
+  import { ref } from 'vue';
+  import { getDefaultOptions } from '../defaultOptions.js';
+
+  export default {
+    name: 'MyPluginConfigEditor',
+    components: {
+      VContainer,
+      VRow,
+      VCol,
+      AbstractConfigEditor,
+      VcsFormSection,
+      VcsLabel,
+      VcsTextField,
+    },
+    props: {
+      getConfig: {
+        type: Function,
+        required: true,
+      },
+      setConfig: {
+        type: Function,
+        required: true,
+      },
+    },
+    setup(props) {
+      const defaultOptions = getDefaultOptions();
+      const config = props.getConfig();
+      const localConfig = ref({ ...defaultOptions, ...config });
+
+      const apply = () => {
+        props.setConfig(localConfig.value);
+      };
+
+      return {
+        localConfig,
+        apply,
+      };
+    },
+  };
+</script>
+
+<style scoped></style>
 ```
 
 ### About Plugin Assets
