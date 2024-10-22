@@ -1,3 +1,7 @@
+## 4.0.1
+
+- merged v3 into main to fix issues with version ranges would return arrays.
+
 ## 4.0.0
 
 - major update to @vcmap/ui 6.0, including vue3 & vuetify 3.
