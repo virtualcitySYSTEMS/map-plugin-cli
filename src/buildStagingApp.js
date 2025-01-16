@@ -10,6 +10,38 @@ import setupMapUi from './setupMapUi.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
 
 /**
+ * @param {VcmConfigJs} config
+ * @returns {string | undefined}
+ */
+function getHtaccess(config) {
+  let htaccess;
+  if (config.htaccess) {
+    ({ htaccess } = config);
+  } else if (config.proxy) {
+    const htaccessLines = Object.keys(config.proxy).map((key) => {
+      const value = config.proxy[key];
+      let target;
+      if (typeof value === 'string') {
+        target = value;
+      } else {
+        ({ target } = value);
+        console.log(
+          `proxy settings for ${key} may be more complex, simply using rewrite to target: ${target}`,
+        );
+      }
+      return `RewriteRule ^${key.replace(/^\^/, '')} ${target} [P,L]`;
+    });
+
+    if (htaccessLines.length > 0) {
+      htaccessLines.unshift('RewriteEngine On');
+      htaccess = htaccessLines.join('\n');
+    }
+  }
+
+  return htaccess;
+}
+
+/**
  * creates production preview application in the dist folder based on the @vcmap/ui default configuration.
  * @returns {Promise<void>}
  */
@@ -70,6 +102,12 @@ export default async function buildStagingApp() {
   if (pluginConfig) {
     pluginConfig.entry = `plugins/${pluginName}/index.js`;
   }
+  const htaccess = getHtaccess(vcmConfigJs);
+  if (htaccess) {
+    await writeFile(path.join(distPath, '.htaccess'), htaccess);
+    logger.log('built .htaccess');
+  }
+
   await writeFile(
     path.join(distPath, 'app.config.json'),
     JSON.stringify(appConfig, null, 2),

@@ -1,7 +1,8 @@
-## 4.0.1
+## 4.0.2
 
 - add note on `setConfig` of plugin config editor interface
 - fix interface spec `VcsPluginLoaderFunction`
+- adds support for generating an `.htaccess` file for the staging app
 
 ## 4.0.1
 
