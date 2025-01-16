@@ -426,11 +426,24 @@ If a plugin does not provide a config editor, the JsonEditor is always used as f
 To provide a custom editor, the plugin has to implement a `getConfigEditors` method returning one or more editors.
 A plugin config editor definition consists of
 
-- component: The vue component providing the ui of the editor. This vue component has to extend the `AbstractConfigEditor.vue`, which can be imported from `@vcmap/ui`. The component has to provide two props: `getConfig` for getting the serialized configuration and `setConfig` to update the changed configuration.
+- component: The vue component providing the ui of the editor. This vue component has to extend the `AbstractConfigEditor.vue`, which can be imported from `@vcmap/ui`.
+  The component has to provide two props:
+  - `getConfig` for getting the serialized configuration and
+  - `setConfig` to update the changed configuration (do not pass proxies or anything by reference to setConfig! See note below for more information)
 - title: An optional title displayed in the window header of the editor and on action buttons (e.g. tooltip)
 - collectionName: The collection the item belongs to. Default is `plugins` collection. For a layer config editor you would provide `layers`.
 - itemName: The item the editor can be used for. Can be a name or className. Default is the plugin's name. For a layer you would provide `MyNewLayer.className`.
 - infoUrlCallback: An optional function returning an url referencing help or further information regarding the config editor.
+
+> IMPORTANT NOTE:
+>
+> Make sure you do not pass proxy elements or internals by reference to `setConfig`!
+>
+> - proxies can be removed by using vue's `toRaw` function
+> - `toRaw` is not deep, therefor nested proxy elements like arrays have to be manually removed, e.g. by iterating over the array and calling `toRaw` on each array item
+> - everything passed by reference has to be deeply cloned, e.g. using `structuredClone`
+>
+> Best practice: Use `setConfig(structuredClone(...))` because it will throw, if you pass a proxy
 
 An example of plugin config editor can look like this:
 
@@ -462,7 +475,7 @@ An example of plugin config editor can look like this:
     VcsLabel,
     VcsTextField,
   } from '@vcmap/ui';
-  import { ref } from 'vue';
+  import { ref, toRaw } from 'vue';
   import { getDefaultOptions } from '../defaultOptions.js';
 
   export default {
@@ -492,7 +505,8 @@ An example of plugin config editor can look like this:
       const localConfig = ref({ ...defaultOptions, ...config });
 
       const apply = () => {
-        props.setConfig(localConfig.value);
+        // Do not pass proxy elements or internals by reference! See note above example for more information
+        props.setConfig(structuredClone(toRaw(localConfig.value)));
       };
 
       return {

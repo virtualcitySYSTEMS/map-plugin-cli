@@ -1,5 +1,10 @@
 ## 4.0.1
 
+- add note on `setConfig` of plugin config editor interface
+- fix interface spec `VcsPluginLoaderFunction`
+
+## 4.0.1
+
 - merged v3 into main to fix issues with version ranges would return arrays.
 
 ## 4.0.0

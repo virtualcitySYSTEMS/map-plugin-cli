@@ -12,14 +12,11 @@ function sleep(ms = 0): Promise<void> {
 type TestPluginInstance = VcsPlugin<object, object>;
 
 // @ts-expect-error: not defined on global
-window.VcsPluginLoaderFunction = (
-  name: string,
-  module: string,
-): {
-  default: () => TestPluginInstance;
+window.VcsPluginLoaderFunction = (): {
+  default: (config: object, module: string) => TestPluginInstance;
 } => ({
   // @ts-expect-error: interface may not use this
-  default: () => plugin({ name }, module),
+  default: (config, baseUrl) => plugin(config, baseUrl),
 });
 
 const testPropSymbol = Symbol('testProp');

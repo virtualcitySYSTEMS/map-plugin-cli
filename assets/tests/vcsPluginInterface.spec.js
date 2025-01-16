@@ -9,8 +9,8 @@ function sleep(ms = 0) {
   });
 }
 
-window.VcsPluginLoaderFunction = (name, module) => ({
-  default: () => plugin({ name }, module),
+window.VcsPluginLoaderFunction = () => ({
+  default: (config, baseUrl) => plugin(config, baseUrl),
 });
 
 const testPropSymbol = Symbol('testProp');
