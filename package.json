@@ -42,7 +42,7 @@
     "vite-plugin-vuetify": "^2.0.4"
   },
   "peerDependencies": {
-    "@vcmap/ui": "^6.0",
+    "@vcmap/ui": "^6.0.0",
     "vue": "~3.4.38"
   },
   "peerDependenciesMeta": {
