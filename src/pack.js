@@ -80,12 +80,12 @@ async function zip(name) {
   const read = fs.createReadStream(fileName);
   const write = fs.createWriteStream(`${fileName}.gz`);
 
-  await new Promise((res, rej) => {
+  await new Promise((resolve, reject) => {
     pipeline([read, createGzip(), write], (err) => {
       if (err) {
-        rej(err);
+        reject(err);
       } else {
-        res();
+        resolve();
       }
     });
   });

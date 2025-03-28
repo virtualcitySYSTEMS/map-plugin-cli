@@ -1,3 +1,4 @@
+/* global global */
 /* eslint-disable import/first */
 import { vi } from 'vitest';
 

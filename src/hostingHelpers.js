@@ -244,12 +244,18 @@ export function addAppConfigRoute(
   production,
 ) {
   app.get('/app.config.json', (req, res) => {
-    getAppConfigJson(appConfig, auth, production, configFile).then((config) => {
-      const stringConfig = JSON.stringify(config, null, 2);
-      res.setHeader('Content-Type', 'application/json');
-      res.write(stringConfig);
-      res.end();
-    });
+    getAppConfigJson(appConfig, auth, production, configFile)
+      .then((config) => {
+        const stringConfig = JSON.stringify(config, null, 2);
+        res.setHeader('Content-Type', 'application/json');
+        res.write(stringConfig);
+        res.end();
+      })
+      .catch((e) => {
+        logger.error(e);
+        res.statusCode = 500;
+        res.end();
+      });
   });
 }
 

@@ -2,11 +2,41 @@
 
 > Part of the [VC Map Project](https://github.com/virtualcitySYSTEMS/map-ui)
 
-> Note: This documentation is for version @vcmap/ui 6.0.0, compatible with the [VC Map](https://github.com/virtualcitySYSTEMS/map-ui).
+> Note: This documentation is for version @vcmap/ui 6, compatible with the [VC Map](https://github.com/virtualcitySYSTEMS/map-ui).
 >
-> [Migration Guide](https://github.com/virtualcitySYSTEMS/map-ui/blob/release-v6.0/MIGRATION_V6.md) for Plugins from @vcmap/ui 5.0.0
+> [Migration Guide](https://github.com/virtualcitySYSTEMS/map-ui/blob/release-v6.0/MIGRATION_V6.md) for Plugins from @vcmap/ui 5
 
 The `@vcmap/plugin-cli` helps develop and build plugins for the **VC Map**.
+
+### Migration to Eslint9
+
+If you are updating a plugin, you should also update to the new eslint config. To
+do so, remove the eslint config and any eslint plugins (or even eslint itself) from
+the devDependencies, then add the eslint config again:
+
+```bash
+npm uninstall @vcsuite/eslint-config eslint
+npm i -D @vcsuite/eslint-config
+```
+
+You should then create a `eslint.config.js` in the root of your project.
+You should then extend the `vue` or `vueTs` config, depending on
+your project using typescript or not. You can then remove any .eslintrc files still left in your
+project, plus the eslintConfig and eslintIgnore from your package.json.
+
+```bash
+echo "import { configs } from '@vcsuite/eslint-config';" > eslint.config.js
+echo "" >> eslint.config.js
+echo "export default [" >> eslint.config.js
+echo "  ...configs.vueTs," >> eslint.config.js
+echo "  { ignores: ['node_modules/', 'dist/'] }," >> eslint.config.js
+echo "];" >> eslint.config.js
+echo "" >> eslint.config.js
+```
+
+You can then remove any .eslintrc(.js) (including the one in the tests directory) files and any eslint config from your package.json.
+To fix issues in the default vcs interface spec & setup, you can copy paste the template from [this projects assets folder](https://github.com/virtualcitySYSTEMS/map-plugin-cli/tree/main/assets/).
+Be sure to copy the typescript or vanilla folder, depending on your project.
 
 ## Features
 

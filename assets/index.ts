@@ -1,4 +1,4 @@
-import { VcsPlugin, VcsUiApp, PluginConfigEditor } from '@vcmap/ui';
+import type { VcsPlugin, VcsUiApp, PluginConfigEditor } from '@vcmap/ui';
 import { name, version, mapVersion } from '../package.json';
 
 type PluginConfig = Record<never, never>;
@@ -67,7 +67,7 @@ export default function plugin(
     /**
      * components for configuring the plugin and/ or custom items defined by the plugin
      */
-    getConfigEditors(): PluginConfigEditor[] {
+    getConfigEditors(): PluginConfigEditor<object>[] {
       return [];
     },
     destroy(): void {

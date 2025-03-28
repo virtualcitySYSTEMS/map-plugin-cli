@@ -14,6 +14,7 @@ program
   .summary('create new plugin')
   .defaultOptions()
   .option('-t --typescript', 'Create a plugin using typescript')
+  .option('-d --default <name>', 'use defaults')
   .safeAction(create);
 
 program

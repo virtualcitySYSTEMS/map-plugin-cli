@@ -19,12 +19,12 @@ import {
  * @typedef {Object} PluginTemplateOptions
  * @property {string} name
  * @property {string} version
- * @property {string} description
+ * @property {string} [description]
  * @property {Array<Object>} scripts
- * @property {string} author
- * @property {string} repository
+ * @property {string} [author]
+ * @property {string} [repository]
  * @property {string} license
- * @property {string} template
+ * @property {string} [template]
  * @property {Array<string>} peerDeps
  * @property {boolean} gitlabCi
  * @property {boolean} typescript
@@ -160,14 +160,14 @@ async function createPluginTemplate(options, pluginPath) {
   if (installEsLint) {
     packageJson.eslintIgnore = ['node_modules', 'dist', 'plugin-assets'];
     if (!options.typescript) {
-      packageJson.eslintConfig = {
-        root: true,
-        extends: '@vcsuite/eslint-config/vue',
-      };
+      await fs.promises.copyFile(
+        path.join(getDirname(), '..', 'assets', 'eslintConfig.js'),
+        path.join(pluginPath, 'eslint.config.js'),
+      );
     } else {
       await fs.promises.copyFile(
-        path.join(getDirname(), '..', 'assets', 'eslintrc.cjs'),
-        path.join(pluginPath, '.eslintrc.cjs'),
+        path.join(getDirname(), '..', 'assets', 'eslintConfigTs.js'),
+        path.join(pluginPath, 'eslint.config.js'),
       );
     }
     packageJson.prettier = '@vcsuite/eslint-config/prettier.js';
@@ -178,13 +178,12 @@ async function createPluginTemplate(options, pluginPath) {
     JSON.stringify(packageJson, null, 2),
   );
 
-  const configJson = {
-    name: options.name,
-  };
-
   await fs.promises.writeFile(
     path.join(pluginPath, 'config.json'),
-    JSON.stringify(configJson, null, 2),
+    `{
+  "name": "${options.name}"
+}
+`,
   );
 
   if (options.template) {
@@ -205,25 +204,14 @@ async function createPluginTemplate(options, pluginPath) {
 
   if (installVitest) {
     logger.debug('setting up test environment');
-    await fs.promises.cp(
-      path.join(getDirname(), '..', 'assets', 'tests'),
-      path.join(pluginPath, 'tests'),
-      { recursive: true },
-    );
-    if (options.typescript) {
-      await fs.promises.rm(
-        path.join(pluginPath, 'tests', 'vcsPluginInterface.spec.js'),
-      );
-      await fs.promises.cp(
-        path.join(getDirname(), '..', 'assets', 'testsTypescript'),
-        path.join(pluginPath, 'tests'),
-        { recursive: true },
-      );
-      await fs.promises.copyFile(
-        path.join(getDirname(), '..', 'assets', 'eslintrcTests.cjs'),
-        path.join(pluginPath, '.eslintrc.cjs'),
-      );
-    }
+    const testSrcPath = options.typescript
+      ? path.join(getDirname(), '..', 'assets', 'testsTypescript')
+      : path.join(getDirname(), '..', 'assets', 'tests');
+
+    await fs.promises.cp(testSrcPath, path.join(pluginPath, 'tests'), {
+      recursive: true,
+    });
+
     await fs.promises.copyFile(
       path.join(getDirname(), '..', 'assets', 'vitest.config.js'),
       path.join(pluginPath, 'vitest.config.js'),
@@ -291,14 +279,14 @@ async function createPluginTemplate(options, pluginPath) {
 async function createPlugin(options) {
   if (!options.name) {
     logger.error('please provide a plugin name as input parameter');
-    process.exit(1);
+    throw new Error('no plugin name provided');
   }
   logger.debug(`creating new plugin: ${options.name}`);
 
   const pluginPath = path.join(process.cwd(), options.name);
   if (fs.existsSync(pluginPath)) {
     logger.error('plugin with the provided name already exists');
-    process.exit(1);
+    throw new Error('path already exists');
   }
 
   await fs.promises.mkdir(pluginPath);
@@ -314,14 +302,17 @@ async function createPlugin(options) {
     path.join(pluginPath, 'README.md'),
     [
       `# ${options.name}`,
+      '',
       '> Part of the [VC Map Project](https://github.com/virtualcitySYSTEMS/map-ui)',
+      '',
       'describe your plugin',
+      '',
     ].join('\n'),
   );
 
   const writeChangesPromise = fs.promises.writeFile(
     path.join(pluginPath, 'CHANGELOG.md'),
-    `# v${options.version}\nDocument features and fixes`,
+    `# v${options.version}\n\nDocument features and fixes\n`,
   );
 
   const copyGitIgnorePromise = fs.promises.copyFile(
@@ -364,8 +355,8 @@ async function createPlugin(options) {
       path.join(pluginPath, 'tsconfig.json'),
     );
     await fs.promises.copyFile(
-      path.join(getDirname(), '..', 'assets', 'eslintrc.cjs'),
-      path.join(pluginPath, '.eslintrc.cjs'),
+      path.join(getDirname(), '..', 'assets', 'eslintConfigTs.js'),
+      path.join(pluginPath, 'eslint.config.js'),
     );
   }
 
@@ -375,9 +366,10 @@ async function createPlugin(options) {
 }
 
 /**
+ * @param {{ default?: string }} cliOptions
  * @returns {Promise<void>}
  */
-export default async function create() {
+export default async function create(cliOptions) {
   const templateChoices = [
     { title: 'no template (basic structure)', value: null },
     { title: 'hello-world', value: '@vcmap-show-case/hello-world' },
@@ -521,15 +513,29 @@ export default async function create() {
     },
   ];
 
-  const answers = await prompts(questions, {
-    onCancel() {
-      process.exit(0);
-    },
-  });
+  if (cliOptions.default) {
+    logger.info(`creating default plugin ${cliOptions.default}`);
+    await createPlugin({
+      name: cliOptions.default,
+      version: '1.0.0',
+      scripts: scriptChoices.filter((s) => s.selected).map((s) => s.value),
+      license: LicenseType.MIT,
+      peerDeps: [],
+      gitlabCi: true,
+      typescript: true,
+    });
+  } else {
+    const answers = await prompts(questions, {
+      onCancel() {
+        // eslint-disable-next-line n/no-process-exit
+        process.exit(0);
+      },
+    });
 
-  if (answers.template && answers.typescript) {
-    answers.typescript = !!answers.keepTs;
+    if (answers.template && answers.typescript) {
+      answers.typescript = !!answers.keepTs;
+    }
+
+    await createPlugin(answers);
   }
-
-  await createPlugin(answers);
 }

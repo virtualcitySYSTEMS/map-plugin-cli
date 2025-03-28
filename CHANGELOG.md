@@ -1,3 +1,7 @@
+## 4.1.0
+
+- new eslint 9 config usage. see README.md for migration instructions.
+
 ## 4.0.2
 
 - add note on `setConfig` of plugin config editor interface

@@ -48,6 +48,7 @@ Command.prototype.safeAction = function safeAction(action) {
         logger.error(e);
       }
       logger.stopSpinner();
+      // eslint-disable-next-line n/no-process-exit
       process.exit(1);
     }
   });
