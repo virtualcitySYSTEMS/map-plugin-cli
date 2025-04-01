@@ -219,19 +219,6 @@ This can be helpful, if you want to share specific parameters valid for a specif
 In order to do so just save a `vcm.config.js` in your plugin's root directory.
 This file has to return a js object as default export.
 
-Example `vcm.config.js` defining proxy and port:
-
-```js
-export default {
-  // server.proxy see https://vitejs.dev/config/server-options.html#server-proxy
-  proxy: {
-    // string shorthand: http://localhost:8008/foo -> https://vc.systems/foo
-    '/foo': 'https://vc.systems',
-  },
-  port: 5005,
-};
-```
-
 The following parameters are valid:
 
 | parameter | type               | description                                                                                                               |
@@ -243,9 +230,73 @@ The following parameters are valid:
 | vcm       | string             | A filename or URL to a VC Map application. Only works for `preview` command! Takes precedence over `appConfig` parameter. |
 | proxy     | Object             | A server proxy (see [vitejs.dev](https://vitejs.dev/config/server-options.html#server-proxy))                             |
 
-> The `vcm` parameter uses a hosted map application to preview the plugin. The plugin is bundled and added to the application. This parameter is only working for `preview` mode.
+Examples:
 
-> For the `appConfig` option, map and plugin are bundled to create a preview environment. Here only the configuration is loaded from the provided url or object. This parameter is working for both `preview` and `serve` mode.
+- defining modules:
+  > For the `appConfig` option, map and plugin are bundled to create a preview environment.
+  > You can provide modules from absolute or relative URLs or inline configurations.
+  > This parameter is working for both `preview` and `serve` mode.
+
+```js
+export default {
+  appConfig: {
+    modules: [
+      "https://www.virtualcitymap.de/config/www.config.json",
+      "./node_modules/@vcmap/ui/config/dev.config.json",
+      {
+        "name": "myCustomConfig",
+        "startingViewpointName": "start",
+        "viewpoints": [
+          {
+            "type": "Viewpoint",
+            "name": "start",
+            "groundPosition": [...],
+            "distance": 100
+          }
+        ],
+        "layers": [
+          {
+            "name": "geojsonClassification",
+            "type": "GeoJSONLayer",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [...]
+                },
+              }
+            ],
+            "activeOnStartup": true,
+          },
+        ]
+      }
+    ]
+  }
+}
+```
+
+- referencing a hosted application
+  > The `vcm` parameter uses a hosted map application to preview the plugin. The plugin is bundled and added to the application. This parameter is only working for `preview` mode.
+
+```js
+export default {
+  vcm: 'https://www.virtualcitymap.de/app.config.json',
+};
+```
+
+- defining proxy and port:
+
+```js
+export default {
+  // server.proxy see https://vitejs.dev/config/server-options.html#server-proxy
+  proxy: {
+    // string shorthand: http://localhost:8008/foo -> https://vc.systems/foo
+    '/foo': 'https://vc.systems',
+  },
+  port: 5005,
+};
+```
 
 ## About Peer Dependencies
 
