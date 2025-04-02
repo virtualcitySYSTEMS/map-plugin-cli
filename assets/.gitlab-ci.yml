@@ -9,6 +9,7 @@ stages:
   - test
   - bundle
   - deploy
+  - prepublish
   - version
   - publish
   - deployCluster
@@ -104,7 +105,7 @@ deployStaging:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: ['']
   script:
-    - /kaniko/executor --context dist/ --dockerfile build/staging/Dockerfile --destination $CI_REGISTRY_IMAGE/staging:$CI_COMMIT_REF_SLUG
+    - /kaniko/executor --context dist/ --dockerfile node_modules/@vcmap/plugin-cli/assets/build/staging/Dockerfile --destination $CI_REGISTRY_IMAGE/staging:$CI_COMMIT_REF_SLUG
   before_script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
@@ -143,6 +144,24 @@ deployStagingCluster:
   trigger:
     project: vcsuite/devops/manifests
     branch: main
+
+sshDependenciesCheck:
+  <<: *after_build_definition
+  stage: prepublish
+  only:
+    variables:
+      - $PUBLISH
+    refs:
+      - /^(main|release-v.*)$/
+  script:
+    - echo "Checking for SSH dependencies in package.json..."
+    - |
+      if grep -E "git(\+ssh)?://git@gitlab|ssh://git@gitlab:|gitlab:" package.json; then
+        echo "Error: SSH link dependencies found in package.json."
+        exit 1
+      else
+        echo "No SSH link dependencies found."
+      fi
 
 version:
   <<: *after_build_definition

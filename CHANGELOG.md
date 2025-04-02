@@ -1,6 +1,7 @@
 ## 4.1.0
 
 - new eslint 9 config usage. see README.md for migration instructions.
+- changed `create` to not create a Dockerfile for new plugins.
 
 ## 4.0.2
 
