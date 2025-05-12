@@ -1,3 +1,7 @@
+## 4.1.1
+
+- include new 'geographiclib-geodesic' in vite optimization to fix a bug.
+
 ## 4.1.0
 
 - new eslint 9 config usage. see README.md for migration instructions.

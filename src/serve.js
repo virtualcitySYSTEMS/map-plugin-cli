@@ -127,6 +127,7 @@ export default async function serve(options) {
     'semver',
     '@vcmap-cesium/engine',
     'vue',
+    'geographiclib-geodesic',
   ];
 
   // We exclude ui dependencies from optimization, to allow plugins to use another version of the same plugin.
