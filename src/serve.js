@@ -120,6 +120,7 @@ export default async function serve(options) {
   const { peerDependencies } = await getPackageJson();
 
   const optimizationIncludes = [
+    'geotiff',
     'fast-deep-equal',
     'rbush',
     'rbush-knn',

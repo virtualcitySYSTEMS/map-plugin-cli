@@ -1,3 +1,7 @@
+## 4.1.2
+
+- include 'geotiff' in vite optimization to fix a bug.
+
 ## 4.1.1
 
 - include new 'geographiclib-geodesic' in vite optimization to fix a bug.
