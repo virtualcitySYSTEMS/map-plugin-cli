@@ -1,3 +1,7 @@
+## 4.1.3
+
+- watch changes in core folder when linked via npm link to reflect changes in vite dev.
+
 ## 4.1.2
 
 - include 'geotiff' in vite optimization to fix a bug.

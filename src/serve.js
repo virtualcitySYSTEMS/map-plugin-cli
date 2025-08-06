@@ -1,10 +1,11 @@
 import fs from 'fs';
-import { lstat, readFile } from 'fs/promises';
+import { lstat, readFile, readlink } from 'fs/promises';
 import { createServer } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import express from 'express';
 import { logger } from '@vcsuite/cli-logger';
 import path from 'path';
+import { join, resolve, dirname } from 'node:path';
 import { getContext } from './context.js';
 import {
   addConfigRoute,
@@ -142,6 +143,26 @@ export default async function serve(options) {
     (name) => !optimizationIncludes.includes(name),
   );
 
+  let serverFsConfig;
+  const coreModule = join(process.cwd(), 'node_modules', '@vcmap', 'core');
+  const coreStats = await lstat(coreModule);
+  if (coreStats.isSymbolicLink()) {
+    const linkPath = await readlink(coreModule);
+    serverFsConfig = {
+      allow: [
+        '.',
+        resolve(dirname(coreModule), join(linkPath, 'dist', 'src', 'workers')),
+      ],
+    };
+  } else {
+    serverFsConfig = {
+      allow: [
+        '.',
+        resolve(dirname(coreModule), join('dist', 'src', 'workers')),
+      ],
+    };
+  }
+
   const server = await createServer({
     root: getContext(),
     publicDir: './node_modules/@vcmap/ui/public',
@@ -172,6 +193,7 @@ export default async function serve(options) {
     },
     plugins: [vue(), createConfigJsonReloadPlugin()],
     server: {
+      fs: serverFsConfig,
       middlewareMode: true,
       proxy: { ...mergedOptions.proxy, ...proxy },
     },
