@@ -1,3 +1,8 @@
+## 4.1.4
+
+- updates default Dockerfile to use bookworm http base image.
+- fixes an issue with the htaccess generation from node-proxy configurations in vcm.config.js.
+
 ## 4.1.3
 
 - watch changes in core folder when linked via npm link to reflect changes in vite dev.

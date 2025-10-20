@@ -1,4 +1,4 @@
-FROM httpd:2-buster
+FROM httpd:2-bookworm
 COPY . /usr/local/apache2/htdocs/
 # allow for proxy
 RUN sed -i '/LoadModule rewrite_module/s/^#//g' /usr/local/apache2/conf/httpd.conf && \

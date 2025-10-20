@@ -29,7 +29,7 @@ function getHtaccess(config) {
           `proxy settings for ${key} may be more complex, simply using rewrite to target: ${target}`,
         );
       }
-      return `RewriteRule ^${key.replace(/^\^/, '')}(.*) ${target}$1 [P,L]`;
+      return `RewriteRule ^${key.replace(/^[/^]/, '')}(.*) ${target.replace(/\/$/, '')}$1 [P,L]`;
     });
 
     if (htaccessLines.length > 0) {
