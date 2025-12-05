@@ -1,3 +1,7 @@
+## 4.1.5
+
+- fix gitlab-ci.yml template when using create command with gitlab-ci option.
+
 ## 4.1.4
 
 - updates default Dockerfile to use bookworm http base image.
