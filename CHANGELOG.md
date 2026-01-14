@@ -1,3 +1,7 @@
+## 4.1.6
+
+- add vite option `optimizeDeps` to vcmConfig.js (for serve), see https://vite.dev/config/dep-optimization-options
+
 ## 4.1.5
 
 - fix gitlab-ci.yml template when using create command with gitlab-ci option.

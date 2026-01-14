@@ -130,6 +130,7 @@ export default async function serve(options) {
     '@vcmap-cesium/engine',
     'vue',
     'geographiclib-geodesic',
+    ...(mergedOptions.optimizeDeps?.include || []),
   ];
 
   // We exclude ui dependencies from optimization, to allow plugins to use another version of the same plugin.
@@ -139,9 +140,10 @@ export default async function serve(options) {
     (await readFile(uiPackageJsonPath)).toString(),
   );
 
-  const excludedOptimizations = Object.keys(dependencies).filter(
-    (name) => !optimizationIncludes.includes(name),
-  );
+  const excludedOptimizations = [
+    ...Object.keys(dependencies),
+    ...(mergedOptions.optimizeDeps?.exclude || []),
+  ].filter((name) => !optimizationIncludes.includes(name));
 
   let serverFsConfig;
   const coreModule = join(process.cwd(), 'node_modules', '@vcmap', 'core');
@@ -175,6 +177,7 @@ export default async function serve(options) {
       preserveSymlinks: uiLStat.isSymbolicLink(),
     },
     optimizeDeps: {
+      ...(mergedOptions.optimizeDeps || {}),
       exclude: [
         '@vcmap/ui',
         '@vcmap/core',

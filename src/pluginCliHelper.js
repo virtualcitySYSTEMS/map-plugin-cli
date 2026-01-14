@@ -30,6 +30,7 @@ export const promiseExec = util.promisify(childProcess.exec);
  * @typedef {PreviewOptions} VcmConfigJs
  * @property {Object} [proxy] - see https://vitejs.dev/config/server-options.html#server-proxy. when building a staging app, we try to deduce an .htaccess from it.
  * @property {string} [htaccess] - a string representing an .htaccess file content for use in staging apps.
+ * @property {Object} [optimizeDeps] - see https://vite.dev/config/dep-optimization-options
  */
 
 /**

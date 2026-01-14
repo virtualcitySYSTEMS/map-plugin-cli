@@ -58,6 +58,9 @@ export default async function buildModule(options) {
     esbuild: {
       minify: !options.development,
     },
+    define: {
+      'process.env.NODE_ENV': '"production"',
+    },
     build: {
       write: false,
       emptyOutDir: false,
