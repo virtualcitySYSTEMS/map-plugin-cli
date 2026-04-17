@@ -1,3 +1,8 @@
+## 4.2.0
+
+- update vite to version 6
+- fix typescript version for creation of new plugins
+
 ## 4.1.6
 
 - add vite option `optimizeDeps` to vcmConfig.js (for serve), see https://vite.dev/config/dep-optimization-options

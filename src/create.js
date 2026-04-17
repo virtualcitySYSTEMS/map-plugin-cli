@@ -59,6 +59,10 @@ function createPackageJson(options) {
     author: options.author,
     license: options.license,
     dependencies: {},
+    overrides: {
+      esbuild: '^0.25.0',
+      '@zip.js/zip.js': '2.7.68',
+    },
     keywords: ['vcmap', 'plugin'],
     files: [
       'src/',
@@ -135,6 +139,24 @@ async function copyPluginTemplate(options, pluginPath) {
 }
 
 /**
+ * @param {string} pluginPath
+ * @returns {*|string}
+ */
+function getUiTypescriptVersion(pluginPath) {
+  const content = fs.readFileSync(
+    path.join(pluginPath, 'node_modules', '@vcmap', 'ui', 'package.json'),
+    'utf-8',
+  );
+  try {
+    const { devDependencies } = JSON.parse(content.toString());
+    return devDependencies.typescript;
+  } catch (error) {
+    console.error(error);
+    return '*';
+  }
+}
+
+/**
  * Creates a plugin from scratch
  * @param {PluginTemplateOptions} options
  * @param {string} pluginPath
@@ -158,7 +180,6 @@ async function createPluginTemplate(options, pluginPath) {
 
   const installEsLint = options.scripts.find((script) => script.lint);
   if (installEsLint) {
-    packageJson.eslintIgnore = ['node_modules', 'dist', 'plugin-assets'];
     if (!options.typescript) {
       await fs.promises.copyFile(
         path.join(getDirname(), '..', 'assets', 'eslintConfig.js'),
@@ -261,7 +282,8 @@ async function createPluginTemplate(options, pluginPath) {
       );
     }
     if (options.typescript) {
-      devDeps.push('typescript', 'vue-tsc');
+      const tsVersion = getUiTypescriptVersion(pluginPath);
+      devDeps.push(`typescript@${tsVersion}`, 'vue-tsc');
     }
     await installDeps(devDeps, DepType.DEV, pluginPath);
     logger.success('Installed dependencies');

@@ -14,6 +14,7 @@ const configTest = defineConfig({
         inline: ['vuetify', '@vcmap/ui'],
       },
     },
+    css: true,
     environment: 'jsdom',
     setupFiles: ['tests/setup.js'],
     pool: 'forks',
