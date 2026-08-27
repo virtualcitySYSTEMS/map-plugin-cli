@@ -187,13 +187,6 @@ export default async function serve(options) {
       ],
       include: optimizationIncludes,
     },
-    css: {
-      preprocessorOptions: {
-        scss: {
-          api: 'modern-compiler', // or "modern", "legacy"
-        },
-      },
-    },
     plugins: [vue(), createConfigJsonReloadPlugin()],
     server: {
       fs: serverFsConfig,

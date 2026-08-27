@@ -59,10 +59,6 @@ function createPackageJson(options) {
     author: options.author,
     license: options.license,
     dependencies: {},
-    overrides: {
-      esbuild: '^0.25.0',
-      '@zip.js/zip.js': '2.7.68',
-    },
     keywords: ['vcmap', 'plugin'],
     files: [
       'src/',

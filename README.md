@@ -2,9 +2,9 @@
 
 > Part of the [VC Map Project](https://github.com/virtualcitySYSTEMS/map-ui)
 
-> Note: This documentation is for version @vcmap/ui 6, compatible with the [VC Map](https://github.com/virtualcitySYSTEMS/map-ui).
+> Note: This documentation is for version @vcmap/ui 7, compatible with the [VC Map](https://github.com/virtualcitySYSTEMS/map-ui).
 >
-> [Migration Guide](https://github.com/virtualcitySYSTEMS/map-ui/blob/release-v6.0/MIGRATION_V6.md) for Plugins from @vcmap/ui 5
+> [Migration Guide](https://github.com/virtualcitySYSTEMS/map-ui/blob/release-v7.0/MIGRATION_V7.md) for Plugins from @vcmap/ui 6
 
 The `@vcmap/plugin-cli` helps develop and build plugins for the **VC Map**.
 
@@ -35,7 +35,7 @@ echo "" >> eslint.config.js
 ```
 
 You can then remove any .eslintrc(.js) (including the one in the tests directory) files and any eslint config from your package.json.
-To fix issues in the default vcs interface spec & setup, you can copy paste the template from [this projects assets folder](https://github.com/virtualcitySYSTEMS/map-plugin-cli/tree/main/assets/).
+To fix issues in the default vcs interface spec & setup, you can copy paste the template from [this project's assets folder](https://github.com/virtualcitySYSTEMS/map-plugin-cli/tree/main/assets/).
 Be sure to copy the typescript or vanilla folder, depending on your project.
 
 ## Features
@@ -48,7 +48,7 @@ Be sure to copy the typescript or vanilla folder, depending on your project.
 
 ## Prerequisite
 
-You need [nodejs](https://nodejs.org/en/) 20 and npm installed on your system
+You need [nodejs](https://nodejs.org/en/) 24 and npm installed on your system
 to use this tool.
 
 ## Installation
@@ -102,10 +102,10 @@ And for TS based plugins:
 -| tsconfig.json
 ```
 
-It is important to, not that the entry point for _building_ the plugin (and
+It is important to note that the entry point for _building_ the plugin (and
 the file which exports the default export for the plugin interface) **MUST** be
 located at `./src/index.js` or `./src/index.ts` respectively. If you have created
-your plugin using any version of the `@vcmap/plugins-cli`, this will already be
+your plugin using any version of the `@vcmap/plugin-cli`, this will already be
 the case.
 
 ### 1. Creating a new plugin
@@ -117,7 +117,7 @@ vcmplugin create
 ```
 
 This will open a command prompt helping you to create the basic [structure of a plugin](#vc-map-plugins).
-Be sure to check out the [peer dependecy section](#about-peer-dependencies) as well.
+Be sure to check out the [peer dependency section](#about-peer-dependencies) as well.
 
 Optionally, in the create-prompt you can choose an existing plugin [@vcmap/hello-world](https://www.npmjs.com/package/@vcmap/hello-world) as a template.
 
@@ -214,7 +214,7 @@ Without using the VC Publisher you can also deploy a plugin manually:
 ## vcm config js
 
 The `@vcmap/plugin-cli` supports an optional configuration file, which can be used for the commands `serve` and `preview`.
-It's an alternative to providing cli parameters (which will still have precedence) and even has a few extra feature like proxy or inline config files.
+It's an alternative to providing cli parameters (which will still have precedence) and even has a few extra features like proxy or inline config files.
 This can be helpful, if you want to share specific parameters valid for a specific plugin.
 In order to do so just save a `vcm.config.js` in your plugin's root directory.
 This file has to return a js object as default export.
@@ -317,7 +317,7 @@ as peer dependencies if you use them in your plugin:
 - vue
 - vuetify
 
-If you want to update your plugin to a newer version of `@vcmap/ui`, the `@vcmap/plugin-cli` provides a update tool.
+If you want to update your plugin to a newer version of `@vcmap/ui`, the `@vcmap/plugin-cli` provides an update tool.
 Just change to your plugin's directory and run:
 
 ```bash
@@ -419,7 +419,7 @@ to create your project, a template already adhering to these specs will be creat
 ### Plugin Interface:
 
 Plugins must provide a function default export which returns an Object complying
-with the VC Map Plugin Interface describe below. This function is passed the current
+with the VC Map Plugin Interface described below. This function is passed the current
 configuration of the plugin as its first argument and the base URL (without the filename)
 from which the plugin was loaded as its second argument.
 
@@ -461,7 +461,7 @@ declare function defaultExport<T extends Object, S extends Object>(
 
 > The function default export should not throw! Put exceptions in initialize instead.
 
-A Simple JavaScript implementation of this interface can be seen below::
+A Simple JavaScript implementation of this interface can be seen below:
 
 ```javascript
 // index.js
@@ -521,7 +521,7 @@ A plugin config editor definition consists of
 > Make sure you do not pass proxy elements or internals by reference to `setConfig`!
 >
 > - proxies can be removed by using vue's `toRaw` function
-> - `toRaw` is not deep, therefor nested proxy elements like arrays have to be manually removed, e.g. by iterating over the array and calling `toRaw` on each array item
+> - `toRaw` is not deep, therefore nested proxy elements like arrays have to be manually removed, e.g. by iterating over the array and calling `toRaw` on each array item
 > - everything passed by reference has to be deeply cloned, e.g. using `structuredClone`
 >
 > Best practice: Use `setConfig(structuredClone(...))` because it will throw, if you pass a proxy
@@ -604,7 +604,7 @@ An example of plugin config editor can look like this:
 ### About Plugin Assets
 
 Plugin assets are considered to be static files, such as images, fonts etc. which shall be
-access from within the plugin. Since plugins have no knowledge of _where_ they will
+accessed from within the plugin. Since plugins have no knowledge of _where_ they will
 be deployed, the `@vcmap/ui` provides the `getPluginAssetUrl` helper function
 which allows you to generate an asset URL at runtime.
 

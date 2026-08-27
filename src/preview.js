@@ -24,6 +24,25 @@ import { getVcmConfigJs } from './pluginCliHelper.js';
  */
 
 /**
+ * Resolves relative `assets` imports to the root `/assets` path.
+ * Replaces the previous `resolve.alias[].customResolver`, which is deprecated in Vite 8.
+ * @returns {import("vite").Plugin}
+ */
+function assetsAliasPlugin() {
+  const assetsRegex = /(\.\.?\/)+assets(.*)/;
+  return {
+    name: 'assets-alias-resolver',
+    enforce: 'pre',
+    resolveId(source) {
+      if (assetsRegex.test(source)) {
+        return source.replace(assetsRegex, '/assets$2');
+      }
+      return null;
+    },
+  };
+}
+
+/**
  * @param {VcmConfigJs} options
  * @returns {Promise<import("vite").InlineConfig>}
  */
@@ -53,19 +72,10 @@ async function getServerOptions(options) {
 
   return {
     publicDir: false,
-    plugins: [createConfigJsonReloadPlugin()],
+    plugins: [createConfigJsonReloadPlugin(), assetsAliasPlugin()],
 
     resolve: {
       alias: [
-        {
-          find: /(\.\.?\/)+assets(.*)/,
-          replacement: '/assets$2',
-          customResolver: {
-            resolveId(source) {
-              return source;
-            },
-          },
-        },
         {
           find: '@cesium/engine',
           replacement: '@vcmap-cesium/engine',

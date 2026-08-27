@@ -1,3 +1,9 @@
+## 5.0.0
+
+- major update to @vcmap/ui version 7.0
+- update vite to version 8.2
+- update Node to version 24
+
 ## 4.2.0
 
 - update vite to version 6

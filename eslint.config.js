@@ -19,7 +19,10 @@ export default [
       'import/no-unresolved': [
         2,
         {
-          ignore: ['^@vcmap/ui'],
+          // vite and @vitejs/plugin-vue are ESM-only packages that only declare
+          // an "exports" field (no "main"), which eslint-import-resolver-node
+          // cannot resolve. See https://github.com/import-js/eslint-plugin-import/issues/1810
+          ignore: ['^@vcmap/ui', '^vite$', '^@vitejs/plugin-vue$'],
         },
       ],
       'import/no-cycle': 'off',

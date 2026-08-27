@@ -53,11 +53,9 @@ export default async function buildModule(options) {
     await mkdir(distPath);
   }
   const external = Object.keys(libraryPaths);
+  /** @type {import('vite').UserConfig} */
   const config = {
     ...getDefaultConfig(),
-    esbuild: {
-      minify: !options.development,
-    },
     define: {
       'process.env.NODE_ENV': '"production"',
     },
@@ -69,21 +67,22 @@ export default async function buildModule(options) {
         formats: ['es'],
         fileName: () => 'index.js',
       },
-      rollupOptions: {
+      rolldownOptions: {
         external,
         output: {
+          minify: !options.development,
           paths: libraryPaths,
-          manualChunks() {
-            // ensure only one chunk will be created
-            return 'index';
-          },
+          codeSplitting: false,
         },
       },
-      watch: options.watch
-        ? {
-            skipWrite: true,
-          }
-        : null,
+      // Rolldown must actually write the raw bundle to disk on every
+      // (re)build so that `buildLibrary()` (in @vcmap/ui/build/buildHelpers.js)
+      // can read it back from disk and post-process it (css injection, asset
+      // rewriting). `skipWrite` defaults to false, so a plain `{}` here is
+      // enough; it used to be set to `true`, which prevented Rolldown from
+      // ever writing the file, so `dist/index.js` was never created/updated
+      // in preview mode.
+      watch: options.watch ? {} : null,
     },
   };
   const { buildLibrary } = await import('@vcmap/ui/build/buildHelpers.js');

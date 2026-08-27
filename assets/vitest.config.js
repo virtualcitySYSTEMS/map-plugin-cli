@@ -3,17 +3,9 @@ import commonViteConfig from '@vcmap/ui/build/commonViteConfig.js';
 
 const configTest = defineConfig({
   ...commonViteConfig,
-  resolve: {
-    alias: {
-      '@vcmap/ui': '@vcmap/ui',
-    },
-  },
+  resolve: { alias: { '@vcmap/ui': '@vcmap/ui' } },
   test: {
-    server: {
-      deps: {
-        inline: ['vuetify', '@vcmap/ui'],
-      },
-    },
+    server: { deps: { inline: ['vuetify', '@vcmap/ui'] } },
     css: true,
     environment: 'jsdom',
     setupFiles: ['tests/setup.js'],

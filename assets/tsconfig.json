@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "es2022",
+    "module": "nodenext",
     "incremental": false,
     "lib": ["esnext", "dom"],
     "allowJs": true,
@@ -21,8 +21,7 @@
     "noImplicitThis": false,
 
     /* Module Resolution Options */
-    "baseUrl": ".",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "preserveSymlinks": true,
