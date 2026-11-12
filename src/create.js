@@ -39,7 +39,6 @@ function createPackageJson(options) {
   const typescriptScripts = options.typescript
     ? {
         'type-check': 'vue-tsc --noEmit',
-        'ensure-types': 'vcmplugin ensure-types',
       }
     : {};
   const main = options.typescript ? 'dist/index.js' : 'src/index.js';

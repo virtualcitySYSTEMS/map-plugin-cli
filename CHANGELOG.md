@@ -3,6 +3,11 @@
 - major update to @vcmap/ui version 7.0
 - update vite to version 8.2
 - update Node to version 24
+- add `ensure-lib` command, which ensures the `lib/` folder (JS & type declarations) of a linked `@vcmap/ui` is built. `serve` runs this check automatically.
+- deprecate `ensure-types` command. It is now an alias of `ensure-lib` and will be removed in the next major version.
+- `create` no longer adds an `ensure-types` script to typescript plugins.
+- `serve` resolves a linked `@vcmap/ui` via its real path and reloads on changes to its `lib/` folder. Use together with `npm run build-library:watch` in `@vcmap/ui`.
+- fix JSDoc type import in the JS plugin template to use `@vcmap/ui` instead of a deep import.
 
 ## 4.2.0
 

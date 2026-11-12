@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { VcsPlugin } from '@vcmap/ui';
 import { VcsUiApp, loadPlugin, isValidPackageName } from '@vcmap/ui';
 import plugin from '../src/index.js';
-import packageJSON from '../package.json';
+import packageJSON from '../package.json' with { type: 'json' };
 
 function sleep(ms = 0): Promise<void> {
   return new Promise((resolve) => {

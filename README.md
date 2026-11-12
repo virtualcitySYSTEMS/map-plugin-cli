@@ -329,6 +329,13 @@ This will automatically update all peer dependencies defined in your plugin to t
 During the build step, these libraries are automatically externalized by the `@vcmap/plugin-cli` and in
 production all plugins & the map core _share_ the same cesium library.
 
+Externalized libraries are kept as bare imports (e.g. `import { VcsUiApp } from '@vcmap/ui'`) in the built plugin.
+The host resolves them with an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/importmap),
+which is part of the `index.html` built by `@vcmap/ui` (see also `@vcmap/ui/importmap.json`). Hosts which do not use
+the `@vcmap/ui` `index.html` must provide an import map before their first module script (`createImportMap` from
+`@vcmap/ui/build/buildHelpers.js`). Plugins built with an earlier version of the CLI use relative paths to the
+libraries and are still loaded by the map.
+
 But, to make this work, it is important to define these dependencies as _peer dependencies_ of
 a plugin and _that the provided index files_ are used (over directly importing from the source file).
 
@@ -669,3 +676,34 @@ As for now, we don't do any components testing.
 To develop the plugin-cli, be sure to not `npm link` into plugins, since this will
 throw the resolver in resolving the @vcmap/ui peer dependency from the current plugin.
 Instead, run `npm pack` in the plugin cli and install the tarball in the plugin directly.
+
+### Developing against a linked @vcmap/ui
+
+Starting with `@vcmap/ui` 7.0, the package is resolved via its compiled `lib/` folder
+(JavaScript and type declarations). Published versions ship with a prebuilt `lib/`.
+If you link `@vcmap/ui` into your plugin (`npm link` or a `file:` dependency), you have to
+build the library first:
+
+```shell
+npx vcmplugin ensure-lib
+```
+
+This builds `lib/` in the linked `@vcmap/ui`, if it is missing. `serve` runs this check
+automatically.
+
+To work on the linked `@vcmap/ui` while serving your plugin, run the library build in watch mode
+within `@vcmap/ui`:
+
+```shell
+# in @vcmap/ui
+npm run build-library:watch
+# in your plugin
+npm start
+```
+
+When `@vcmap/ui` is linked, `serve` resolves it via its real path, so the dev server reloads the
+page whenever `lib/` changes. Type declarations are updated as well, so your IDE and `type-check`
+pick up API changes.
+
+The `ensure-types` command is deprecated and now an alias of `ensure-lib`. You can remove
+it from your scripts and CI configuration.

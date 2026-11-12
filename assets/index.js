@@ -9,7 +9,7 @@ import { name, version, mapVersion } from '../package.json';
  * Implementation of VcsPlugin interface. This function should not throw! Put exceptions in initialize instead.
  * @param {T} config - the configuration of this plugin instance, passed in from the app.
  * @param {string} baseUrl - the absolute URL from which the plugin was loaded (without filename, ending on /)
- * @returns {import("@vcmap/ui/src/vcsUiApp").VcsPlugin<T, PluginState>}
+ * @returns {import("@vcmap/ui").VcsPlugin<T, PluginState>}
  * @template {Object} T
  */
 export default function plugin(config, baseUrl) {

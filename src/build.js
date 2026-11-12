@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vue from '@vitejs/plugin-vue';
 import vcsOl from '@vcmap/rollup-plugin-vcs-ol';
 import { logger } from '@vcsuite/cli-logger';
-import { getEntry, getPluginName } from './packageJsonHelpers.js';
+import { getEntry } from './packageJsonHelpers.js';
 import { getContext } from './context.js';
 import { executeUiNpm, resolveMapUi } from './hostingHelpers.js';
 
@@ -24,35 +24,19 @@ export function getDefaultConfig() {
 }
 
 /**
- * @param {string} pluginName
- * @returns {Object<string, string>}
- */
-export async function getLibraryPaths(pluginName) {
-  const { libraries } = await import('@vcmap/ui/build/buildHelpers.js');
-  const pluginPath = path.posix.join('plugins', ...pluginName.split('/'));
-  const libraryPaths = {};
-  Object.entries(libraries).forEach(([library, assetName]) => {
-    const assetPath = path.posix.join('assets', `${assetName}.js`);
-
-    libraryPaths[library] = path.posix.relative(pluginPath, assetPath);
-  });
-  return libraryPaths;
-}
-
-/**
  * @param {BuildOptions} options
  * @returns {Promise<void>}
  */
 export default async function buildModule(options) {
   const entry = getEntry();
-  const pluginName = await getPluginName();
-  const libraryPaths = await getLibraryPaths(pluginName);
+  const { libraries } = await import('@vcmap/ui/build/buildHelpers.js');
   const distPath = path.join(getContext(), 'dist');
   if (!options.keepDistFolder) {
     await rm(distPath, { recursive: true, force: true });
     await mkdir(distPath);
   }
-  const external = Object.keys(libraryPaths);
+  // libraries are externalized with bare specifiers. The host resolves them via its import map.
+  const external = Object.keys(libraries);
   /** @type {import('vite').UserConfig} */
   const config = {
     ...getDefaultConfig(),
@@ -71,7 +55,6 @@ export default async function buildModule(options) {
         external,
         output: {
           minify: !options.development,
-          paths: libraryPaths,
           codeSplitting: false,
         },
       },

@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import { program } from 'commander';
+import { logger } from '@vcsuite/cli-logger';
 import './src/defaultCommand.js';
 import { create, serve, build, pack, preview, update } from './index.js';
 import { version } from './src/pluginCliHelper.js';
 import setupMapUi from './src/setupMapUi.js';
 import buildStagingApp from './src/buildStagingApp.js';
-import ensureTypes from './src/ensureTypes.js';
+import ensureLib from './src/ensureLib.js';
 
 program.version(version);
 
@@ -70,6 +71,23 @@ program
   )
   .safeAction(update);
 
-program.command('ensure-types').action(ensureTypes);
+program
+  .command('ensure-lib')
+  .description(
+    'ensure the @vcmap/ui library (lib/ incl. type declarations) is built. Only required if @vcmap/ui is linked',
+  )
+  .defaultOptions()
+  .safeAction(ensureLib);
+
+program
+  .command('ensure-types')
+  .description('[deprecated] use ensure-lib instead')
+  .defaultOptions()
+  .safeAction(async () => {
+    logger.warning(
+      'ensure-types is deprecated and will be removed in the next major version. Use ensure-lib instead or remove the call, @vcmap/ui ships with its type declarations.',
+    );
+    await ensureLib();
+  });
 
 program.parse(process.argv);

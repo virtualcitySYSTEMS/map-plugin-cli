@@ -1,8 +1,8 @@
 import type { VcsPlugin, VcsUiApp, PluginConfigEditor } from '@vcmap/ui';
-import { name, version, mapVersion } from '../package.json';
+import packageJson from '../package.json' with { type: 'json' };
 
-type PluginConfig = Record<never, never>;
-type PluginState = Record<never, never>;
+type PluginConfig = Record<string, never>;
+type PluginState = Record<string, never>;
 
 type MyPlugin = VcsPlugin<PluginConfig, PluginState>;
 
@@ -14,13 +14,13 @@ export default function plugin(
   console.log(config, baseUrl);
   return {
     get name(): string {
-      return name;
+      return packageJson.name;
     },
     get version(): string {
-      return version;
+      return packageJson.version;
     },
     get mapVersion(): string {
-      return mapVersion;
+      return packageJson.mapVersion;
     },
     initialize(vcsUiApp: VcsUiApp, state?: PluginState): Promise<void> {
       // eslint-disable-next-line no-console

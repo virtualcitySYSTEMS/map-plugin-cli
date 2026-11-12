@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { lstat, readFile, readlink } from 'fs/promises';
+import { lstat, readFile, readlink, realpath } from 'fs/promises';
 import { createServer } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import express from 'express';
@@ -19,6 +19,7 @@ import {
 } from './hostingHelpers.js';
 import { getPackageJson, getPluginName, isTS } from './packageJsonHelpers.js';
 import { getVcmConfigJs } from './pluginCliHelper.js';
+import ensureLib from './ensureLib.js';
 
 /**
  * @typedef {HostingOptions} ServeOptions
@@ -88,6 +89,34 @@ async function getProxy(protocol, port) {
 }
 
 /**
+ * If @vcmap/ui is linked (npm link or file:), resolve its entry via the real path. Vite does not watch files within
+ * node_modules, but it does watch files outside of the root. Resolving the linked ui outside of node_modules
+ * therefore triggers a reload whenever its lib/ changes, e.g. while running `npm run build-library:watch` in @vcmap/ui.
+ * Only the bare `@vcmap/ui` specifier is aliased, deep imports (e.g. @vcmap/ui/config/*) are resolved as before.
+ * @param {import("fs").Stats} uiLStat
+ * @param {Object} uiPackageJson
+ * @returns {Promise<{ alias: Array<import("vite").Alias>, allow: string[] }>}
+ */
+async function getLinkedUiConfig(uiLStat, uiPackageJson) {
+  if (!uiLStat.isSymbolicLink()) {
+    return { alias: [], allow: [] };
+  }
+  const uiRealPath = await realpath(resolveMapUi());
+  logger.info(
+    `Using linked @vcmap/ui at ${uiRealPath}. Run "npm run build-library:watch" in @vcmap/ui to reload on changes.`,
+  );
+  return {
+    alias: [
+      {
+        find: /^@vcmap\/ui$/,
+        replacement: join(uiRealPath, uiPackageJson.main ?? 'index.js'),
+      },
+    ],
+    allow: [uiRealPath],
+  };
+}
+
+/**
  * @param {ServeOptions} options
  * @returns {Promise<void>}
  */
@@ -102,6 +131,8 @@ export default async function serve(options) {
   const mergedOptions = { ...vcmConfigJs, ...options };
 
   await printVcmapUiVersion();
+  // @vcmap/ui is resolved via its lib/ entry. In case @vcmap/ui is linked, lib/ may not have been built yet.
+  await ensureLib();
   const uiLStat = await lstat(resolveMapUi());
 
   /*
@@ -136,9 +167,10 @@ export default async function serve(options) {
   // We exclude ui dependencies from optimization, to allow plugins to use another version of the same plugin.
   // vitejs seems to have a problem with optimized deps in different versions.
   const uiPackageJsonPath = path.join(resolveMapUi(), 'package.json');
-  const { dependencies } = JSON.parse(
+  const uiPackageJson = JSON.parse(
     (await readFile(uiPackageJsonPath)).toString(),
   );
+  const { dependencies } = uiPackageJson;
 
   const excludedOptimizations = [
     ...Object.keys(dependencies),
@@ -165,14 +197,22 @@ export default async function serve(options) {
     };
   }
 
+  const linkedUi = await getLinkedUiConfig(uiLStat, uiPackageJson);
+  serverFsConfig.allow.push(...linkedUi.allow);
+
+  const { default: devImportMap } = await import(
+    '@vcmap/ui/build/devImportMap.js'
+  );
+
   const server = await createServer({
     root: getContext(),
     publicDir: './node_modules/@vcmap/ui/public',
     resolve: {
-      alias: {
-        '@cesium/engine': '@vcmap-cesium/engine',
-        tinyqueue: 'tinyqueue/tinyqueue.js',
-      },
+      alias: [
+        { find: '@cesium/engine', replacement: '@vcmap-cesium/engine' },
+        { find: 'tinyqueue', replacement: 'tinyqueue/tinyqueue.js' },
+        ...linkedUi.alias,
+      ],
       dedupe: Object.keys(peerDependencies),
       preserveSymlinks: uiLStat.isSymbolicLink(),
     },
@@ -187,7 +227,7 @@ export default async function serve(options) {
       ],
       include: optimizationIncludes,
     },
-    plugins: [vue(), createConfigJsonReloadPlugin()],
+    plugins: [vue(), createConfigJsonReloadPlugin(), devImportMap()],
     server: {
       fs: serverFsConfig,
       middlewareMode: true,
